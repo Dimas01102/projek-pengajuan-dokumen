@@ -22,11 +22,10 @@ if (isset($_GET['id'])) {
     $result_detail = mysqli_query($conn, $query_detail);
     $detail_data = mysqli_fetch_assoc($result_detail);
 
-    // Get berkas
+    // Get berkas (multiple files)
     if ($detail_data) {
-        $query_berkas = "SELECT * FROM t_berkas_dokumen WHERE id_pengajuan = '$id_pengajuan'";
+        $query_berkas = "SELECT * FROM t_berkas_dokumen WHERE id_pengajuan = '$id_pengajuan' ORDER BY id_berkas ASC";
         $result_berkas = mysqli_query($conn, $query_berkas);
-        $berkas_data = mysqli_fetch_assoc($result_berkas);
 
         // Get riwayat
         $query_riwayat = "SELECT r.*, s.nama_status, u.nama_lengkap
@@ -70,6 +69,28 @@ $result_pengajuan = mysqli_query($conn, $query_pengajuan);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .file-item {
+            padding: 12px;
+            border-left: 4px solid #dc3545;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .file-item:hover {
+            background: #e9ecef;
+        }
+
+        .file-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .file-size {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+    </style>
 </head>
 
 <body>
@@ -147,22 +168,55 @@ $result_pengajuan = mysqli_query($conn, $query_pengajuan);
                                     <h6 class="mb-3">Keterangan Tambahan:</h6>
                                     <?php
                                     $keterangan = json_decode($detail_data['keterangan'], true);
-                                    if ($keterangan):
+                                    if ($keterangan && !empty($keterangan)):
                                         foreach ($keterangan as $key => $value):
                                     ?>
-                                            <p><strong><?= ucwords(str_replace('_', ' ', $key)) ?>:</strong> <?= $value ?></p>
+                                            <p><strong><?= $key ?>:</strong> <?= $value ?></p>
                                     <?php
                                         endforeach;
+                                    else:
+                                        echo '<p class="text-muted">Tidak ada keterangan tambahan</p>';
                                     endif;
                                     ?>
 
-                                    <?php if ($berkas_data): ?>
+                                    <?php if (mysqli_num_rows($result_berkas) > 0): ?>
                                         <hr>
-                                        <h6>Berkas Terupload:</h6>
-                                        <p>
-                                            <i class="fas fa-file"></i> <?= $berkas_data['nama_file'] ?>
-                                            (<?= format_file_size($berkas_data['ukuran_file']) ?>)
-                                        </p>
+                                        <h6 class="mb-3"><i class="fas fa-paperclip"></i> Berkas Pendukung:</h6>
+                                        <div class="d-flex flex-column gap-2">
+                                            <?php
+                                            $no = 1;
+                                            while ($berkas = mysqli_fetch_assoc($result_berkas)):
+                                                // Parse label dari nama_file
+                                                $nama_file = $berkas['nama_file'];
+                                                if (strpos($nama_file, '|||') !== false) {
+                                                    // Ada delimiter, ambil bagian pertama sebagai label
+                                                    $parts = explode('|||', $nama_file, 2);
+                                                    $display_label = $parts[0];
+                                                } else {
+                                                    // Tidak ada delimiter, gunakan nama file asli
+                                                    $display_label = basename($nama_file);
+                                                }
+                                            ?>
+                                                <div class="file-item">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="fas fa-file-pdf text-danger me-2" style="font-size: 1.5rem;"></i>
+                                                        <div class="flex-grow-1">
+                                                            <div class="file-label"><?= htmlspecialchars($display_label) ?></div>
+                                                            <div class="file-size">
+                                                                <i class="fas fa-file-circle-check"></i> <?= format_file_size($berkas['ukuran_file']) ?>
+                                                            </div>
+                                                        </div>
+                                                        <span class="badge bg-primary"><?= $no ?></span>
+                                                    </div>
+                                                </div>
+                                            <?php
+                                                $no++;
+                                            endwhile;
+                                            ?>
+                                        </div>
+                                    <?php else: ?>
+                                        <hr>
+                                        <p class="text-muted"><i class="fas fa-info-circle"></i> Tidak ada berkas terupload</p>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -185,7 +239,7 @@ $result_pengajuan = mysqli_query($conn, $query_pengajuan);
 
                             <!-- Riwayat Status -->
                             <hr>
-                            <h6>Riwayat Status:</h6>
+                            <h6><i class="fas fa-history"></i> Riwayat Status:</h6>
                             <div class="timeline">
                                 <?php while ($riwayat = mysqli_fetch_assoc($result_riwayat)): ?>
                                     <div class="mb-3">

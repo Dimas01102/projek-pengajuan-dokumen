@@ -15,7 +15,7 @@ require_once 'admin_handler.php';
     <title>Dashboard Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- link css eksteral  -->
     <link rel="stylesheet" href="../assets/css/style.css">
 
@@ -310,6 +310,7 @@ require_once 'admin_handler.php';
                         <div class="d-flex justify-content-end mb-2">
                             <small class="text-muted">Halaman <?= $page ?> dari <?= $total_pages_jenis ?> (Total: <?= $total_jenis_count ?> data)</small>
                         </div>
+                        <!-- UPDATE TABEL JENIS DOKUMEN -->
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead>
@@ -317,6 +318,7 @@ require_once 'admin_handler.php';
                                         <th>Nama Dokumen</th>
                                         <th>Deskripsi</th>
                                         <th>Jumlah Field</th>
+                                        <th>Upload Required</th>
                                         <th>Status</th>
                                         <th>Tanggal Dibuat</th>
                                         <th>Aksi</th>
@@ -326,16 +328,23 @@ require_once 'admin_handler.php';
                                     <?php while ($j = mysqli_fetch_assoc($result_jenis)):
                                         $decoded = decode_deskripsi_with_config($j['deskripsi']);
                                         $field_count = count($decoded['field_config']);
+                                        $upload_count = $decoded['upload_config']['jumlah'];
                                     ?>
                                         <tr>
                                             <td><strong><?= $j['nama_dokumen'] ?></strong></td>
                                             <td><?= substr($decoded['deskripsi'], 0, 50) . (strlen($decoded['deskripsi']) > 50 ? '...' : '') ?></td>
                                             <td><span class="badge bg-info"><?= $field_count ?> Field</span></td>
+                                            <td>
+                                                <span class="badge bg-primary">
+                                                    <i class="fas fa-file-upload"></i> <?= $upload_count ?> File
+                                                </span>
+                                            </td>
                                             <td><span class="badge bg-<?= $j['status'] == 'aktif' ? 'success' : 'secondary' ?>"><?= ucfirst($j['status']) ?></span></td>
                                             <td><?= format_tanggal($j['tanggal_dibuat']) ?></td>
                                             <td class="d-inline-flex gap-1">
                                                 <button type="button" class="btn btn-sm btn-info"
-                                                    onclick='editJenis(<?= json_encode(["id" => $j["id_jenis"], "nama" => $j["nama_dokumen"], "data" => $decoded]) ?>)'>
+                                                    onclick='editJenis(<?= json_encode(["id" => $j["id_jenis"], "nama" => $j["nama_dokumen"], "data" => $decoded]) ?>)'
+                                                    title="Edit">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
 
@@ -474,7 +483,7 @@ require_once 'admin_handler.php';
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php 
+                                    <?php
                                     // Query ulang untuk laporan (tidak pakai pagination)
                                     $result_jenis_laporan = mysqli_query($conn, "SELECT * FROM t_jenis_dokumen ORDER BY tanggal_dibuat DESC");
                                     while ($jenis = mysqli_fetch_assoc($result_jenis_laporan)):
@@ -667,10 +676,40 @@ require_once 'admin_handler.php';
                             </div>
                         </div>
 
+                        <!-- KONFIGURASI FILE UPLOAD -->
+                        <div class="card mb-3 border-info">
+                            <div class="card-header bg-info text-white">
+                                <h6 class="mb-0"><i class="fas fa-file-upload"></i> Konfigurasi Upload Dokumen</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Jumlah File yang Harus Diupload *</label>
+                                        <select name="jumlah_upload" id="jumlah_upload" class="form-select" onchange="updateUploadFields()" required>
+                                            <option value="1">1 File</option>
+                                            <option value="2">2 File</option>
+                                            <option value="3">3 File</option>
+                                            <option value="4">4 File</option>
+                                            <option value="5">5 File</option>
+                                        </select>
+                                        <small class="text-muted">Warga akan diminta mengupload sejumlah file sesuai konfigurasi ini</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Format File</label>
+                                        <input type="text" class="form-control" value="PDF (Maksimal 5MB per file)" readonly>
+                                    </div>
+                                </div>
+
+                                <div id="uploadFieldsContainer" class="mt-3">
+                                    <!-- Label untuk setiap field upload akan ditambahkan di sini -->
+                                </div>
+                            </div>
+                        </div>
+
                         <hr>
 
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="mb-0"><i class="fas fa-sliders-h"></i> Konfigurasi Field Input</h6>
+                            <h6 class="mb-0"><i class="fas fa-sliders-h"></i> Konfigurasi Field Input Form</h6>
                             <button type="button" class="btn btn-sm btn-success" onclick="addFieldRow()">
                                 <i class="fas fa-plus"></i> Tambah Field
                             </button>
@@ -809,6 +848,32 @@ require_once 'admin_handler.php';
 
         let fieldCounter = 0;
 
+
+        // Fungsi untuk update upload fields berdasarkan jumlah yang dipilih
+        function updateUploadFields() {
+            const jumlah = parseInt(document.getElementById('jumlah_upload').value);
+            const container = document.getElementById('uploadFieldsContainer');
+
+            let html = '<div class="row mt-3">';
+            for (let i = 1; i <= jumlah; i++) {
+                html += `
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Label untuk Upload ${i} *</label>
+                <input type="text" 
+                       name="upload_labels[]" 
+                       id="upload_label_${i}"
+                       class="form-control form-control-sm" 
+                       placeholder="Contoh: KTP, KK, Surat Pengantar RT"
+                       required>
+                <small class="text-muted">Label ini akan ditampilkan di form warga</small>
+            </div>
+        `;
+            }
+            html += '</div>';
+
+            container.innerHTML = html;
+        }
+
         // Buka modal tambah jenis dokumen
         function openAddJenisModal() {
             document.getElementById('jenisModalTitle').textContent = 'Tambah Jenis Dokumen';
@@ -816,12 +881,56 @@ require_once 'admin_handler.php';
             document.getElementById('jenis_id').value = '';
             document.getElementById('btnSubmitJenis').name = 'add_jenis';
             document.getElementById('fieldContainer').innerHTML = '';
+            document.getElementById('jumlah_upload').value = '1';
             fieldCounter = 0;
+
+            // Initialize upload fields
+            updateUploadFields();
+
+            // Add default field row
             addFieldRow();
+
             new bootstrap.Modal(document.getElementById('jenisModal')).show();
         }
 
-        // Tambah field row
+        // Edit jenis dokumen - UPDATED
+        function editJenis(data) {
+            document.getElementById('jenisModalTitle').textContent = 'Edit Jenis Dokumen';
+            document.getElementById('jenis_id').value = data.id;
+            document.getElementById('jenis_nama').value = data.nama;
+            document.getElementById('jenis_deskripsi').value = data.data.deskripsi || '';
+            document.getElementById('btnSubmitJenis').name = 'edit_jenis';
+
+            // Set jumlah upload dan label
+            const uploadConfig = data.data.upload_config || {
+                jumlah: 1,
+                labels: ['Dokumen Pendukung']
+            };
+            document.getElementById('jumlah_upload').value = uploadConfig.jumlah;
+            updateUploadFields();
+
+            // Populate upload labels
+            uploadConfig.labels.forEach((label, index) => {
+                const labelInput = document.getElementById('upload_label_' + (index + 1));
+                if (labelInput) {
+                    labelInput.value = label;
+                }
+            });
+
+            // Populate field config
+            document.getElementById('fieldContainer').innerHTML = '';
+            fieldCounter = 0;
+
+            if (data.data.field_config && data.data.field_config.length > 0) {
+                data.data.field_config.forEach(field => addFieldRow(field));
+            } else {
+                addFieldRow();
+            }
+
+            new bootstrap.Modal(document.getElementById('jenisModal')).show();
+        }
+
+        // Tambah field row (tidak berubah, tetap sama seperti sebelumnya)
         function addFieldRow(fieldData = null) {
             fieldCounter++;
             const container = document.getElementById('fieldContainer');
@@ -895,6 +1004,11 @@ require_once 'admin_handler.php';
                 optionsField.value = '';
             }
         }
+
+        // Initialize saat halaman load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUploadFields();
+        });
 
         // Edit jenis dokumen
         function editJenis(data) {

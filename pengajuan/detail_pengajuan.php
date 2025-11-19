@@ -241,27 +241,99 @@ unset($_SESSION['flash_message'], $_SESSION['flash_type']);
                 </div>
 
                 <!-- Berkas -->
-                <?php if ($berkas): ?>
+                <?php
+                $query_berkas_all = "SELECT * FROM t_berkas_dokumen WHERE id_pengajuan = '$id_pengajuan' ORDER BY id_berkas";
+                $result_berkas_all = mysqli_query($conn, $query_berkas_all);
+                $total_berkas = mysqli_num_rows($result_berkas_all);
+                ?>
+
+                <?php if ($total_berkas > 0): ?>
                     <div class="card shadow-sm mb-4">
                         <div class="card-header bg-success text-white">
-                            <h5 class="mb-0"><i class="fas fa-paperclip"></i> Berkas Pendukung</h5>
+                            <h5 class="mb-0">
+                                <i class="fas fa-paperclip"></i> Berkas Pendukung
+                                <span class="badge bg-light text-dark"><?= $total_berkas ?> File</span>
+                            </h5>
                         </div>
                         <div class="card-body">
-                            <div class="row align-items-center">
-                                <div class="col-md-8">
-                                    <p class="mb-1"><strong>Nama File:</strong> <?= $berkas['nama_file'] ?></p>
-                                    <p class="mb-1"><strong>Ukuran:</strong> <?= format_file_size($berkas['ukuran_file']) ?></p>
-                                    <p class="mb-0"><strong>Tipe:</strong> <?= strtoupper($berkas['tipe_file']) ?></p>
+                            <?php if ($total_berkas == 1): ?>
+                                <!-- Single file display -->
+                                <?php
+                                $berkas = mysqli_fetch_assoc($result_berkas_all);
+                                $parsed = parse_file_label($berkas['nama_file']);
+                                ?>
+                                <div class="row align-items-center">
+                                    <div class="col-md-2 text-center">
+                                        <i class="fas fa-file-pdf text-danger" style="font-size: 3rem;"></i>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <?php if ($parsed['label'] != 'Dokumen Pendukung'): ?>
+                                            <div class="mb-2">
+                                                <span class="badge bg-info" style="font-size: 0.9rem;">
+                                                    <i class="fas fa-tag"></i> <?= htmlspecialchars($parsed['label']) ?>
+                                                </span>
+                                            </div>
+                                        <?php endif; ?>
+                                        <h6 class="mb-1"><?= htmlspecialchars($parsed['filename']) ?></h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-hdd"></i> <?= format_file_size($berkas['ukuran_file']) ?> |
+                                            <i class="fas fa-file-alt"></i> <?= strtoupper($berkas['tipe_file']) ?>
+                                        </small>
+                                    </div>
+                                    <div class="col-md-3 text-end">
+                                        <a href="<?= UPLOAD_PATH . $berkas['path_file'] ?>"
+                                            class="btn btn-primary"
+                                            target="_blank">
+                                            <i class="fas fa-download"></i> Unduh
+                                        </a>
+                                    </div>
                                 </div>
-                                <div class="col-md-4 text-end">
-                                    <a href="<?= UPLOAD_PATH . $berkas['path_file'] ?>"
-                                        class="btn btn-primary"
-                                        target="_blank">
-                                        <i class="fas fa-download"></i> Unduh Berkas
-                                    </a>
+                            <?php else: ?>
+                                <!-- Multiple files display -->
+                                <div class="row g-3">
+                                    <?php
+                                    mysqli_data_seek($result_berkas_all, 0);
+                                    while ($berkas = mysqli_fetch_assoc($result_berkas_all)):
+                                        $parsed = parse_file_label($berkas['nama_file']);
+                                    ?>
+                                        <div class="col-md-6">
+                                            <div class="card h-100 border-primary">
+                                                <div class="card-body">
+                                                    <div class="d-flex align-items-start">
+                                                        <div class="flex-shrink-0 me-3">
+                                                            <i class="fas fa-file-pdf text-danger" style="font-size: 2.5rem;"></i>
+                                                        </div>
+                                                        <div class="flex-grow-1">
+                                                            <div class="mb-2">
+                                                                <span class="badge bg-info">
+                                                                    <i class="fas fa-tag"></i> <?= htmlspecialchars($parsed['label']) ?>
+                                                                </span>
+                                                            </div>
+                                                            <h6 class="card-title mb-1" style="font-size: 0.95rem;">
+                                                                <?= htmlspecialchars($parsed['filename']) ?>
+                                                            </h6>
+                                                            <p class="card-text text-muted mb-2" style="font-size: 0.85rem;">
+                                                                <i class="fas fa-hdd"></i> <?= format_file_size($berkas['ukuran_file']) ?>
+                                                            </p>
+                                                            <a href="<?= UPLOAD_PATH . $berkas['path_file'] ?>"
+                                                                class="btn btn-sm btn-primary"
+                                                                target="_blank"
+                                                                title="Unduh <?= htmlspecialchars($parsed['label']) ?>">
+                                                                <i class="fas fa-download"></i> Unduh File
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <?php endwhile; ?>
                                 </div>
-                            </div>
+                            <?php endif; ?>
                         </div>
+                    </div>
+                <?php else: ?>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> Tidak ada berkas pendukung yang diupload
                     </div>
                 <?php endif; ?>
 

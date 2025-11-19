@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $section = '';
 
     // ============ PETUGAS HANDLERS ============
-    
+
     if (isset($_POST['add_petugas'])) {
         $section = 'petugas';
         $username = clean_input($_POST['username']);
@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $section = 'petugas';
         $id = clean_input($_POST['id_pengguna']);
         $check = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM t_pengajuan WHERE validasi_oleh = '$id'"))['total'];
-        
+
         if ($check > 0) {
             $type = 'error';
             $message = 'Tidak bisa hapus! Petugas ini sudah pernah memvalidasi pengajuan.';
@@ -121,10 +121,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['delete_warga'])) {
         $section = 'warga';
         $id = clean_input($_POST['id_pengguna']);
-        
+
         // Nonaktifkan foreign key checks sementara
         mysqli_query($conn, "SET FOREIGN_KEY_CHECKS=0");
-        
+
         // Hapus data terkait terlebih dahulu
         // 1. Hapus berkas dokumen terkait pengajuan warga
         $berkas_query = mysqli_query($conn, "SELECT b.path_file FROM t_berkas_dokumen b 
@@ -137,14 +137,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 unlink($file_path);
             }
         }
-        
+
         // 2. Hapus berkas dokumen dari database
         mysqli_query($conn, "DELETE FROM t_berkas_dokumen WHERE id_pengajuan IN 
                             (SELECT id_pengajuan FROM t_pengajuan WHERE id_pengguna = '$id')");
-        
+
         // 3. Hapus pengajuan warga
         mysqli_query($conn, "DELETE FROM t_pengajuan WHERE id_pengguna = '$id'");
-        
+
         // 4. Hapus data warga
         if (mysqli_query($conn, "DELETE FROM t_pengguna WHERE id_pengguna = '$id' AND role = 'warga'")) {
             $message = 'Warga dan semua data terkait berhasil dihapus';
@@ -152,18 +152,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $type = 'error';
             $message = 'Gagal menghapus warga: ' . mysqli_error($conn);
         }
-        
+
         // Aktifkan kembali foreign key checks
         mysqli_query($conn, "SET FOREIGN_KEY_CHECKS=1");
     }
 
     // ============ JENIS DOKUMEN HANDLERS ============
 
+    // ============ JENIS DOKUMEN HANDLERS - UPDATED ============
+
     if (isset($_POST['add_jenis'])) {
         $section = 'jenis-dokumen';
         $nama_dokumen = clean_input($_POST['nama_dokumen']);
         $deskripsi_text = clean_input($_POST['deskripsi']);
 
+        // Konfigurasi upload
+        $jumlah_upload = (int)$_POST['jumlah_upload'];
+        $upload_labels = array();
+        if (isset($_POST['upload_labels']) && is_array($_POST['upload_labels'])) {
+            foreach ($_POST['upload_labels'] as $label) {
+                $upload_labels[] = clean_input($label);
+            }
+        }
+
+        $upload_config = array(
+            'jumlah' => $jumlah_upload,
+            'labels' => $upload_labels
+        );
+
+        // Konfigurasi field
         $field_config = array();
         if (isset($_POST['field_labels']) && is_array($_POST['field_labels'])) {
             foreach ($_POST['field_labels'] as $index => $label) {
@@ -180,7 +197,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        $deskripsi_gabungan = encode_deskripsi_with_config($deskripsi_text, $field_config);
+        $deskripsi_gabungan = encode_deskripsi_with_config($deskripsi_text, $field_config, $upload_config);
         $deskripsi_escaped = mysqli_real_escape_string($conn, $deskripsi_gabungan);
 
         $query = "INSERT INTO t_jenis_dokumen (nama_dokumen, deskripsi, status) VALUES ('$nama_dokumen', '$deskripsi_escaped', 'aktif')";
@@ -198,6 +215,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nama_dokumen = clean_input($_POST['nama_dokumen']);
         $deskripsi_text = clean_input($_POST['deskripsi']);
 
+        // Konfigurasi upload
+        $jumlah_upload = (int)$_POST['jumlah_upload'];
+        $upload_labels = array();
+        if (isset($_POST['upload_labels']) && is_array($_POST['upload_labels'])) {
+            foreach ($_POST['upload_labels'] as $label) {
+                $upload_labels[] = clean_input($label);
+            }
+        }
+
+        $upload_config = array(
+            'jumlah' => $jumlah_upload,
+            'labels' => $upload_labels
+        );
+
+        // Konfigurasi field
         $field_config = array();
         if (isset($_POST['field_labels']) && is_array($_POST['field_labels'])) {
             foreach ($_POST['field_labels'] as $index => $label) {
@@ -214,7 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        $deskripsi_gabungan = encode_deskripsi_with_config($deskripsi_text, $field_config);
+        $deskripsi_gabungan = encode_deskripsi_with_config($deskripsi_text, $field_config, $upload_config);
         $deskripsi_escaped = mysqli_real_escape_string($conn, $deskripsi_gabungan);
 
         $query = "UPDATE t_jenis_dokumen SET nama_dokumen = '$nama_dokumen', deskripsi = '$deskripsi_escaped' WHERE id_jenis = '$id'";
@@ -231,7 +263,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id = clean_input($_POST['id_jenis']);
         $current_status = clean_input($_POST['status']);
         $new_status = ($current_status == 'aktif') ? 'nonaktif' : 'aktif';
-        
+
         if (mysqli_query($conn, "UPDATE t_jenis_dokumen SET status = '$new_status' WHERE id_jenis = '$id'")) {
             $message = 'Status jenis dokumen berhasil diubah menjadi ' . $new_status;
         } else {
@@ -244,7 +276,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $section = 'jenis-dokumen';
         $id = clean_input($_POST['id_jenis']);
         $status = mysqli_fetch_assoc(mysqli_query($conn, "SELECT status FROM t_jenis_dokumen WHERE id_jenis = '$id'"))['status'];
-        
+
         if ($status === 'aktif') {
             $type = 'error';
             $message = 'Tidak bisa hapus! Jenis dokumen harus dinonaktifkan terlebih dahulu.';
@@ -327,4 +359,3 @@ $result_warga = mysqli_query($conn, "SELECT * FROM t_pengguna WHERE role = 'warg
 $result_jenis = mysqli_query($conn, "SELECT * FROM t_jenis_dokumen ORDER BY tanggal_dibuat DESC LIMIT $limit OFFSET $offset");
 $result_pengajuan = mysqli_query($conn, "SELECT p.*, j.nama_dokumen, s.nama_status, s.warna_badge, u.nama_lengkap as nama_warga FROM t_pengajuan p JOIN t_jenis_dokumen j ON p.id_jenis = j.id_jenis JOIN t_status_pengajuan s ON p.id_status = s.id_status JOIN t_pengguna u ON p.id_pengguna = u.id_pengguna ORDER BY p.tanggal_pengajuan DESC LIMIT $limit OFFSET $offset");
 $aktivitas_petugas = mysqli_query($conn, "SELECT u.nama_lengkap, COUNT(*) as total, SUM(CASE WHEN p.id_status = 2 THEN 1 ELSE 0 END) as disetujui, SUM(CASE WHEN p.id_status = 3 THEN 1 ELSE 0 END) as ditolak FROM t_pengajuan p JOIN t_pengguna u ON p.validasi_oleh = u.id_pengguna WHERE DATE(p.tanggal_validasi) BETWEEN '$tgl_mulai' AND '$tgl_akhir' GROUP BY u.id_pengguna");
-?>

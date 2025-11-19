@@ -23,7 +23,7 @@ if (!$conn) {
 // Set charset UTF-8
 mysqli_set_charset($conn, "utf8");
 
-// Base URL (sesuaikan dengan lokasi project Anda)
+// Base URL 
 define('BASE_URL', 'http://localhost/project_pengajuan_dokumen/');
 
 // Path untuk upload

@@ -78,7 +78,9 @@ $result_jenis = mysqli_query($conn, $query_jenis);
                                         <select name="id_jenis" id="jenis_dokumen" class="form-select" required>
                                             <option value="">-- Pilih Jenis Dokumen --</option>
                                             <?php while ($jenis = mysqli_fetch_assoc($result_jenis)): ?>
-                                                <option value="<?= $jenis['id_jenis'] ?>" data-nama="<?= $jenis['nama_dokumen'] ?>" data-deskripsi="<?= htmlspecialchars($jenis['deskripsi']) ?>">
+                                                <option value="<?= $jenis['id_jenis'] ?>" 
+                                                        data-nama="<?= $jenis['nama_dokumen'] ?>" 
+                                                        data-deskripsi="<?= htmlspecialchars($jenis['deskripsi']) ?>">
                                                     <?= $jenis['nama_dokumen'] ?>
                                                 </option>
                                             <?php endwhile; ?>
@@ -94,11 +96,8 @@ $result_jenis = mysqli_query($conn, $query_jenis);
                                     <!-- Dynamic Fields Container -->
                                     <div id="dynamicFields"></div>
 
-                                    <div class="mb-3">
-                                        <label class="form-label">Upload Berkas Pendukung (PDF Only, Max 5MB)</label>
-                                        <input type="file" name="berkas" id="berkas" class="form-control">
-                                        <small class="text-muted">Upload KTP, KK, atau dokumen pendukung lainnya dalam format PDF</small>
-                                    </div>
+                                    <!-- Dynamic Upload Fields Container -->
+                                    <div id="uploadFieldsContainer"></div>
 
                                     <div class="d-grid gap-2">
                                         <button type="submit" class="btn btn-primary btn-lg">
@@ -119,21 +118,26 @@ $result_jenis = mysqli_query($conn, $query_jenis);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Handle perubahan jenis dokumen - DYNAMIC FIELDS
+        let uploadConfig = null;
+
+        // Handle perubahan jenis dokumen - DYNAMIC FIELDS & UPLOADS
         document.getElementById('jenis_dokumen').addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
             const deskripsiGabungan = selectedOption.getAttribute('data-deskripsi');
             const dynamicFieldsContainer = document.getElementById('dynamicFields');
+            const uploadFieldsContainer = document.getElementById('uploadFieldsContainer');
 
             dynamicFieldsContainer.innerHTML = '';
+            uploadFieldsContainer.innerHTML = '';
 
             if (deskripsiGabungan) {
-                const fieldConfig = decodeFieldConfig(deskripsiGabungan);
+                const decoded = decodeConfig(deskripsiGabungan);
+                
+                // Render form fields
+                if (decoded.field_config && decoded.field_config.length > 0) {
+                    let html = '<div class="alert alert-info"><strong><i class="fas fa-edit"></i> Field Tambahan</strong></div>';
 
-                if (fieldConfig && fieldConfig.length > 0) {
-                    let html = '<div class="alert alert-info"><strong>Field Tambahan</strong></div>';
-
-                    fieldConfig.forEach(field => {
+                    decoded.field_config.forEach(field => {
                         const fieldName = field.label.toLowerCase().replace(/\s+/g, '_').replace(/\./g, '');
 
                         html += '<div class="mb-3">';
@@ -179,64 +183,95 @@ $result_jenis = mysqli_query($conn, $query_jenis);
 
                     dynamicFieldsContainer.innerHTML = html;
                 }
+
+                // Render upload fields
+                if (decoded.upload_config) {
+                    uploadConfig = decoded.upload_config;
+                    renderUploadFields(decoded.upload_config);
+                }
             }
         });
 
-        // Decode field config dari string
-        function decodeFieldConfig(deskripsiGabungan) {
-            if (deskripsiGabungan.includes('###JSON_CONFIG###')) {
-                const parts = deskripsiGabungan.split('###JSON_CONFIG###');
-                if (parts[1]) {
-                    try {
-                        return JSON.parse(parts[1]);
-                    } catch (e) {
-                        console.error('Error parsing field config:', e);
-                        return [];
-                    }
-                }
+        // Render upload fields berdasarkan config
+        function renderUploadFields(config) {
+            const container = document.getElementById('uploadFieldsContainer');
+            const jumlah = config.jumlah || 1;
+            const labels = config.labels || ['Dokumen Pendukung'];
+
+            let html = '<div class="card border-primary mb-3">';
+            html += '<div class="card-header bg-primary text-white">';
+            html += '<h6 class="mb-0"><i class="fas fa-file-upload"></i> Upload Dokumen Pendukung (PDF Only)</h6>';
+            html += '</div>';
+            html += '<div class="card-body">';
+            html += '<div class="alert alert-warning">';
+            html += '<i class="fas fa-info-circle"></i> <strong>Wajib upload ' + jumlah + ' file PDF</strong> (Maksimal 5MB per file)';
+            html += '</div>';
+
+            for (let i = 0; i < jumlah; i++) {
+                const label = labels[i] || 'Dokumen ' + (i + 1);
+                html += '<div class="mb-3">';
+                html += '<label class="form-label fw-bold">' + label + ' <span class="text-danger">*</span></label>';
+                html += '<input type="file" name="berkas[]" class="form-control file-upload" ';
+                html += 'accept="application/pdf" required data-index="' + i + '" data-label="' + label + '">';
+                html += '<small class="text-muted">Format: PDF | Max: 5MB</small>';
+                html += '<div class="file-info-' + i + ' mt-2"></div>';
+                html += '</div>';
             }
-            return [];
+
+            html += '</div></div>';
+
+            container.innerHTML = html;
+
+            // Attach file validation
+            document.querySelectorAll('.file-upload').forEach(input => {
+                input.addEventListener('change', validateFile);
+            });
         }
 
-        // VALIDASI FILE UPLOAD - HANYA PDF
-        document.getElementById('berkas').addEventListener('change', function(e) {
+        // Validasi file upload
+        function validateFile(e) {
             const file = e.target.files[0];
+            const index = e.target.getAttribute('data-index');
+            const label = e.target.getAttribute('data-label');
+            const infoDiv = document.querySelector('.file-info-' + index);
 
             if (file) {
-                const maxSize = 5 * 1024 * 1024; // 5MB dalam bytes
+                const maxSize = 5 * 1024 * 1024; // 5MB
                 const fileExtension = file.name.split('.').pop().toLowerCase();
 
-                // Validasi hanya PDF
+                // Reset info
+                infoDiv.innerHTML = '';
+
+                // Validasi PDF only
                 if (fileExtension !== 'pdf' && file.type !== 'application/pdf') {
                     Swal.fire({
                         icon: 'error',
                         title: 'Format File Tidak Valid!',
-                        html: `<p>Hanya file <strong>PDF</strong> yang diperbolehkan!</p>
-                               <p>File yang Anda pilih: <strong>${file.name}</strong></p>
-                               <p>Format: <strong>${fileExtension.toUpperCase()}</strong></p>`,
+                        html: `<p><strong>${label}</strong>: Hanya file PDF yang diperbolehkan!</p>
+                               <p>File Anda: <strong>${fileExtension.toUpperCase()}</strong></p>`,
                         confirmButtonText: 'OK',
                         confirmButtonColor: '#d33'
                     });
-                    e.target.value = ''; // Reset input file
+                    e.target.value = '';
                     return false;
                 }
 
-                // Validasi ukuran file
+                // Validasi ukuran
                 if (file.size > maxSize) {
                     Swal.fire({
                         icon: 'error',
                         title: 'File Terlalu Besar!',
-                        html: `<p>Ukuran file: <strong>${(file.size / (1024 * 1024)).toFixed(2)} MB</strong></p>
-                               <p>Maksimal ukuran file: <strong>5 MB</strong></p>
-                               <p>Silakan pilih file yang lebih kecil.</p>`,
+                        html: `<p><strong>${label}</strong></p>
+                               <p>Ukuran: <strong>${(file.size / (1024 * 1024)).toFixed(2)} MB</strong></p>
+                               <p>Maksimal: <strong>5 MB</strong></p>`,
                         confirmButtonText: 'OK',
                         confirmButtonColor: '#d33'
                     });
-                    e.target.value = ''; // Reset input file
+                    e.target.value = '';
                     return false;
                 }
 
-                // Notifikasi sukses
+                // Toast sukses pojok kanan atas
                 Swal.fire({
                     icon: 'success',
                     title: 'File Valid!',
@@ -247,48 +282,96 @@ $result_jenis = mysqli_query($conn, $query_jenis);
                     toast: true,
                     position: 'top-end'
                 });
+
+                // Info di bawah input
+                infoDiv.innerHTML = `
+                    <div class="alert alert-success alert-sm mb-0">
+                        <i class="fas fa-check-circle"></i> 
+                        <strong>${file.name}</strong> 
+                        (${(file.size / (1024 * 1024)).toFixed(2)} MB)
+                    </div>
+                `;
             }
-        });
+        }
+
+        // Decode config dari string
+        function decodeConfig(deskripsiGabungan) {
+            if (deskripsiGabungan.includes('###JSON_CONFIG###')) {
+                const parts = deskripsiGabungan.split('###JSON_CONFIG###');
+                if (parts[1]) {
+                    try {
+                        const config = JSON.parse(parts[1]);
+                        // Handle format lama (langsung array) atau format baru (object)
+                        if (Array.isArray(config)) {
+                            return {
+                                field_config: config,
+                                upload_config: {jumlah: 1, labels: ['Dokumen Pendukung']}
+                            };
+                        }
+                        return config;
+                    } catch (e) {
+                        console.error('Error parsing config:', e);
+                    }
+                }
+            }
+            return {
+                field_config: [],
+                upload_config: {jumlah: 1, labels: ['Dokumen Pendukung']}
+            };
+        }
 
         // HANDLE FORM SUBMISSION
         document.getElementById('formPengajuan').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const fileInput = document.getElementById('berkas');
-            const file = fileInput.files[0];
+            const fileInputs = document.querySelectorAll('.file-upload');
+            let allFilesValid = true;
 
-            // Validasi file jika ada file yang dipilih
-            if (file) {
-                const maxSize = 5 * 1024 * 1024; // 5MB
+            // Validasi semua file
+            fileInputs.forEach(input => {
+                const file = input.files[0];
+                const label = input.getAttribute('data-label');
+
+                if (!file) {
+                    allFilesValid = false;
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'File Belum Lengkap!',
+                        html: `<p>File <strong>${label}</strong> belum diupload!</p>`,
+                        confirmButtonColor: '#d33'
+                    });
+                    return false;
+                }
+
+                const maxSize = 5 * 1024 * 1024;
                 const fileExtension = file.name.split('.').pop().toLowerCase();
 
-                // Validasi hanya PDF
                 if (fileExtension !== 'pdf' && file.type !== 'application/pdf') {
+                    allFilesValid = false;
                     Swal.fire({
                         icon: 'error',
                         title: 'Format File Tidak Valid!',
-                        html: `<p>Hanya file <strong>PDF</strong> yang diperbolehkan!</p>
-                               <p>File Anda: <strong>${fileExtension.toUpperCase()}</strong></p>`,
-                        confirmButtonText: 'OK',
+                        html: `<p><strong>${label}</strong>: Hanya PDF yang diperbolehkan!</p>`,
                         confirmButtonColor: '#d33'
                     });
                     return false;
                 }
 
                 if (file.size > maxSize) {
+                    allFilesValid = false;
                     Swal.fire({
                         icon: 'error',
                         title: 'File Terlalu Besar!',
-                        html: `<p>Ukuran file: <strong>${(file.size / (1024 * 1024)).toFixed(2)} MB</strong></p>
-                               <p>Maksimal: <strong>5 MB</strong></p>`,
-                        confirmButtonText: 'OK',
+                        html: `<p><strong>${label}</strong> melebihi 5MB!</p>`,
                         confirmButtonColor: '#d33'
                     });
                     return false;
                 }
-            }
+            });
 
-            // Jika validasi lolos, lanjutkan submit
+            if (!allFilesValid) return false;
+
+            // Submit form
             const formData = new FormData(this);
 
             Swal.fire({
