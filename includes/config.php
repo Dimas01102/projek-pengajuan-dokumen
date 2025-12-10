@@ -1,5 +1,4 @@
 <?php
-// includes/config.php
 // Konfigurasi Database dan Session
 // Mulai session jika belum
 if (session_status() === PHP_SESSION_NONE) {

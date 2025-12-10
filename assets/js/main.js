@@ -12,39 +12,39 @@
  * @returns {Promise} - Promise dari SweetAlert2
  */
 function confirmDelete(message) {
-    return Swal.fire({
-        title: 'Konfirmasi',
-        text: message || 'Apakah Anda yakin ingin menghapus data ini?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Ya, Hapus!',
-        cancelButtonText: 'Batal'
-    });
+  return Swal.fire({
+    title: "Konfirmasi",
+    text: message || "Apakah Anda yakin ingin menghapus data ini?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Ya, Hapus!",
+    cancelButtonText: "Batal",
+  });
 }
 
 /**
  * Tampilkan loading indicator
  * @param {string} message - Pesan loading (default: "Memproses...")
  */
-function showLoading(message = 'Memproses...') {
-    Swal.fire({
-        title: message,
-        text: 'Mohon tunggu',
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
+function showLoading(message = "Memproses...") {
+  Swal.fire({
+    title: message,
+    text: "Mohon tunggu",
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
 }
 
 /**
  * Tutup loading indicator
  */
 function hideLoading() {
-    Swal.close();
+  Swal.close();
 }
 
 /**
@@ -53,13 +53,13 @@ function hideLoading() {
  * @param {number} timer - Durasi tampil (ms), default 2000
  */
 function showSuccess(message, timer = 2000) {
-    Swal.fire({
-        icon: 'success',
-        title: 'Berhasil!',
-        text: message,
-        timer: timer,
-        showConfirmButton: false
-    });
+  Swal.fire({
+    icon: "success",
+    title: "Berhasil!",
+    text: message,
+    timer: timer,
+    showConfirmButton: false,
+  });
 }
 
 /**
@@ -67,11 +67,11 @@ function showSuccess(message, timer = 2000) {
  * @param {string} message - Pesan error
  */
 function showError(message) {
-    Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: message
-    });
+  Swal.fire({
+    icon: "error",
+    title: "Oops...",
+    text: message,
+  });
 }
 
 /**
@@ -79,11 +79,11 @@ function showError(message) {
  * @param {string} message - Pesan info
  */
 function showInfo(message) {
-    Swal.fire({
-        icon: 'info',
-        title: 'Informasi',
-        text: message
-    });
+  Swal.fire({
+    icon: "info",
+    title: "Informasi",
+    text: message,
+  });
 }
 
 // ============================================
@@ -94,15 +94,15 @@ function showInfo(message) {
  * Update jam real-time di element dengan id="realtime-clock"
  */
 function updateClock() {
-    const clockElement = document.getElementById('realtime-clock');
-    if (!clockElement) return;
-    
-    const now = new Date();
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-    
-    clockElement.textContent = `${hours}:${minutes}:${seconds}`;
+  const clockElement = document.getElementById("realtime-clock");
+  if (!clockElement) return;
+
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  const seconds = String(now.getSeconds()).padStart(2, "0");
+
+  clockElement.textContent = `${hours}:${minutes}:${seconds}`;
 }
 
 /**
@@ -110,8 +110,8 @@ function updateClock() {
  * Otomatis berjalan saat DOM ready
  */
 function initClock() {
-    updateClock(); // Update pertama kali
-    setInterval(updateClock, 1000); // Update setiap detik
+  updateClock(); // Update pertama kali
+  setInterval(updateClock, 1000); // Update setiap detik
 }
 
 // ============================================
@@ -126,31 +126,31 @@ function initClock() {
  * @returns {boolean} - true jika valid
  */
 function validateFile(input, maxSize = 5242880, allowedTypes = null) {
-    const file = input.files[0];
-    
-    if (!file) {
-        return true; // Tidak ada file dipilih = valid
+  const file = input.files[0];
+
+  if (!file) {
+    return true; // Tidak ada file dipilih = valid
+  }
+
+  // Cek ukuran file
+  if (file.size > maxSize) {
+    const maxSizeMB = (maxSize / 1048576).toFixed(2);
+    showError(`Ukuran file terlalu besar. Maksimal ${maxSizeMB} MB`);
+    input.value = "";
+    return false;
+  }
+
+  // Cek tipe file jika ada batasan
+  if (allowedTypes && allowedTypes.length > 0) {
+    const fileExt = file.name.split(".").pop().toLowerCase();
+    if (!allowedTypes.includes(fileExt)) {
+      showError(`Tipe file tidak diizinkan. Hanya: ${allowedTypes.join(", ")}`);
+      input.value = "";
+      return false;
     }
-    
-    // Cek ukuran file
-    if (file.size > maxSize) {
-        const maxSizeMB = (maxSize / 1048576).toFixed(2);
-        showError(`Ukuran file terlalu besar. Maksimal ${maxSizeMB} MB`);
-        input.value = '';
-        return false;
-    }
-    
-    // Cek tipe file jika ada batasan
-    if (allowedTypes && allowedTypes.length > 0) {
-        const fileExt = file.name.split('.').pop().toLowerCase();
-        if (!allowedTypes.includes(fileExt)) {
-            showError(`Tipe file tidak diizinkan. Hanya: ${allowedTypes.join(', ')}`);
-            input.value = '';
-            return false;
-        }
-    }
-    
-    return true;
+  }
+
+  return true;
 }
 
 /**
@@ -159,10 +159,10 @@ function validateFile(input, maxSize = 5242880, allowedTypes = null) {
  * @returns {string} - String format readable
  */
 function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + ' MB';
-    if (bytes >= 1024) return (bytes / 1024).toFixed(2) + ' KB';
-    return bytes + ' bytes';
+  if (!bytes || bytes === 0) return "0 Bytes";
+  if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + " MB";
+  if (bytes >= 1024) return (bytes / 1024).toFixed(2) + " KB";
+  return bytes + " bytes";
 }
 
 /**
@@ -171,24 +171,24 @@ function formatFileSize(bytes) {
  * @param {string} type - Tipe file (pdf, jpg, jpeg, png)
  */
 function previewFile(path, type) {
-    let content = '';
-    
-    if (type === 'pdf') {
-        content = `<iframe src="${path}" width="100%" height="600px" style="border:none;"></iframe>`;
-    } else if (['jpg', 'jpeg', 'png', 'gif'].includes(type.toLowerCase())) {
-        content = `<img src="${path}" class="img-fluid" alt="Preview" style="max-width:100%;">`;
-    } else {
-        showError('Tipe file tidak dapat di-preview');
-        return;
-    }
-    
-    Swal.fire({
-        title: 'Preview Berkas',
-        html: content,
-        width: '85%',
-        showCloseButton: true,
-        showConfirmButton: false
-    });
+  let content = "";
+
+  if (type === "pdf") {
+    content = `<iframe src="${path}" width="100%" height="600px" style="border:none;"></iframe>`;
+  } else if (["jpg", "jpeg", "png", "gif"].includes(type.toLowerCase())) {
+    content = `<img src="${path}" class="img-fluid" alt="Preview" style="max-width:100%;">`;
+  } else {
+    showError("Tipe file tidak dapat di-preview");
+    return;
+  }
+
+  Swal.fire({
+    title: "Preview Berkas",
+    html: content,
+    width: "85%",
+    showCloseButton: true,
+    showConfirmButton: false,
+  });
 }
 
 // ============================================
@@ -201,8 +201,8 @@ function previewFile(path, type) {
  * @returns {string} - Format Rupiah
  */
 function formatRupiah(angka) {
-    if (!angka) return 'Rp 0';
-    return 'Rp ' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  if (!angka) return "Rp 0";
+  return "Rp " + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
 /**
@@ -211,17 +211,27 @@ function formatRupiah(angka) {
  * @returns {string} - Format Indonesia
  */
 function formatTanggalIndonesia(dateString) {
-    const bulan = [
-        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-    ];
-    
-    const date = new Date(dateString);
-    const day = date.getDate();
-    const month = bulan[date.getMonth()];
-    const year = date.getFullYear();
-    
-    return `${day} ${month} ${year}`;
+  const bulan = [
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
+  ];
+
+  const date = new Date(dateString);
+  const day = date.getDate();
+  const month = bulan[date.getMonth()];
+  const year = date.getFullYear();
+
+  return `${day} ${month} ${year}`;
 }
 
 // ============================================
@@ -229,75 +239,271 @@ function formatTanggalIndonesia(dateString) {
 // ============================================
 
 /**
- * Tampilkan modal detail pengajuan
+ * Tampilkan modal detail pengajuan dengan MULTI-FILE SUPPORT
  * @param {object} data - Data pengajuan
  */
 function viewDetail(data) {
-    let keterangan = '';
-    
-    // Parse keterangan jika dalam format JSON
-    try {
-        const ket = JSON.parse(data.keterangan);
-        keterangan = Object.entries(ket)
-            .map(([k, v]) => `<strong>${k.replace(/_/g, ' ')}:</strong> ${v}`)
-            .join('<br>');
-    } catch (e) {
-        keterangan = data.keterangan || '-';
-    }
+  console.log("viewDetail called with data:", data);
 
-    // Fetch data berkas
-    fetch('../includes/get_berkas.php?id_pengajuan=' + data.id_pengajuan)
-        .then(response => response.json())
-        .then(berkas => {
-            let berkasHTML = '<p class="text-muted"><em>Tidak ada berkas diupload</em></p>';
-            
-            if (berkas.status === 'success' && berkas.data) {
-                const b = berkas.data;
-                const fileExt = b.tipe_file.toLowerCase();
-                
-                berkasHTML = `
-                    <div class="alert alert-info mb-0">
-                        <strong><i class="fas fa-file"></i> ${b.nama_file}</strong><br>
-                        <small>Ukuran: ${formatFileSize(b.ukuran_file)} | Tipe: ${b.tipe_file.toUpperCase()}</small><br>
-                        <a href="../uploads/${b.path_file}" target="_blank" class="btn btn-sm btn-primary mt-2">
-                            <i class="fas fa-download"></i> Download Berkas
-                        </a>
-                        ${['pdf','jpg','jpeg','png'].includes(fileExt) ? 
-                            `<button onclick="previewFile('../uploads/${b.path_file}', '${fileExt}')" class="btn btn-sm btn-success mt-2">
-                                <i class="fas fa-eye"></i> Preview
-                            </button>` : ''}
-                    </div>
-                `;
-            }
+  let keterangan = "";
 
-            const htmlContent = `
+  // Parse keterangan jika dalam format JSON
+  try {
+    const ket = JSON.parse(data.keterangan);
+    keterangan = Object.entries(ket)
+      .map(([k, v]) => `<strong>${k.replace(/_/g, " ")}:</strong> ${v}`)
+      .join("<br>");
+  } catch (e) {
+    keterangan = data.keterangan || "-";
+  }
+
+  // Deteksi path API secara dinamis
+  const currentPath = window.location.pathname;
+  let apiPath = "";
+
+  // Deteksi apakah berada di folder 'pages' atau 'dashboard'
+  if (currentPath.includes("/pages/")) {
+    apiPath = "../includes/get_berkas.php";
+  } else if (currentPath.includes("/dashboard/")) {
+    apiPath = "../includes/get_berkas.php";
+  } else {
+    // Fallback: gunakan path relatif
+    apiPath = "../includes/get_berkas.php";
+  }
+
+  const apiUrl = `${apiPath}?id_pengajuan=${data.id_pengajuan}`;
+  console.log("Fetching from API:", apiUrl);
+
+  // Fetch ALL berkas dari pengajuan ini
+  fetch(apiUrl)
+    .then((response) => {
+      console.log("API Response status:", response.status);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.text(); // Ambil sebagai text dulu untuk debug
+    })
+    .then((text) => {
+      console.log("Raw API Response:", text);
+
+      // Parse JSON
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch (e) {
+        console.error("JSON Parse Error:", e);
+        throw new Error("Response bukan JSON yang valid");
+      }
+
+      console.log("Parsed API Response:", result);
+
+      let berkasHTML =
+        '<p class="text-muted"><em>Tidak ada berkas diupload</em></p>';
+
+      // HANDLE MULTIPLE FILES
+      if (
+        result.status === "success" &&
+        result.data &&
+        Array.isArray(result.data) &&
+        result.data.length > 0
+      ) {
+        const berkasList = result.data;
+        const totalFiles = berkasList.length;
+
+        console.log("Total files found:", totalFiles);
+
+        if (totalFiles === 1) {
+          // Single file display
+          const b = berkasList[0];
+          const fileExt = (b.tipe_file || "pdf").toLowerCase();
+
+          // Gunakan label yang sudah di-parse dari API (TANPA |||)
+          const displayLabel = b.label || "Dokumen Pendukung";
+          const displayFilename = b.filename_only || b.nama_file || "file.pdf";
+
+          berkasHTML = `
+                        <div class="alert alert-info mb-0">
+                            <div class="d-flex align-items-start mb-2">
+                                <i class="fas fa-file-pdf text-danger me-2" style="font-size: 2rem;"></i>
+                                <div class="flex-grow-1">
+                                    <strong>${displayLabel}</strong><br>
+                                    <small class="text-muted">${displayFilename}</small><br>
+                                    <small>Ukuran: ${formatFileSize(
+                                      parseInt(b.ukuran_file)
+                                    )} | Tipe: ${fileExt.toUpperCase()}</small>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <a href="../uploads/${
+                                  b.path_file
+                                }" target="_blank" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-download"></i> Download Berkas
+                                </a>
+                                ${
+                                  ["pdf", "jpg", "jpeg", "png"].includes(
+                                    fileExt
+                                  )
+                                    ? `<button onclick="previewFile('../uploads/${b.path_file}', '${fileExt}')" class="btn btn-sm btn-success">
+                                        <i class="fas fa-eye"></i> Preview
+                                    </button>`
+                                    : ""
+                                }
+                            </div>
+                        </div>
+                    `;
+        } else {
+          // Multiple files - Carousel display
+          let carouselItems = "";
+
+          berkasList.forEach((b, index) => {
+            const fileExt = (b.tipe_file || "pdf").toLowerCase();
+
+            // Gunakan label yang sudah di-parse dari API (TANPA |||)
+            const displayLabel = b.label || "Dokumen Pendukung";
+            const displayFilename =
+              b.filename_only || b.nama_file || "file.pdf";
+
+            carouselItems += `
+                            <div class="carousel-item ${
+                              index === 0 ? "active" : ""
+                            }">
+                                <div class="card border-primary">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-start mb-3">
+                                            <i class="fas fa-file-pdf text-danger me-3" style="font-size: 3rem;"></i>
+                                            <div class="flex-grow-1">
+                                                <div class="badge bg-info mb-2">
+                                                    <i class="fas fa-tag"></i> ${displayLabel}
+                                                </div>
+                                                <h6 class="mb-1">${displayFilename}</h6>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-hdd"></i> ${formatFileSize(
+                                                      parseInt(b.ukuran_file)
+                                                    )} | 
+                                                    <i class="fas fa-file-alt"></i> ${fileExt.toUpperCase()}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="text-center">
+                                            <span class="badge bg-secondary">File ${
+                                              index + 1
+                                            } dari ${totalFiles}</span>
+                                        </div>
+                                        <div class="mt-3 text-center">
+                                            <a href="../uploads/${
+                                              b.path_file
+                                            }" target="_blank" class="btn btn-primary">
+                                                <i class="fas fa-download"></i> Download File Ini
+                                            </a>
+                                            ${
+                                              [
+                                                "pdf",
+                                                "jpg",
+                                                "jpeg",
+                                                "png",
+                                              ].includes(fileExt)
+                                                ? `<button onclick="previewFile('../uploads/${b.path_file}', '${fileExt}')" class="btn btn-success">
+                                                    <i class="fas fa-eye"></i> Preview
+                                                </button>`
+                                                : ""
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+          });
+
+          berkasHTML = `
+                        <div id="berkasCarousel" class="carousel slide" data-bs-ride="carousel">
+                            <div class="carousel-indicators">
+                                ${berkasList
+                                  .map(
+                                    (_, i) =>
+                                      `<button type="button" data-bs-target="#berkasCarousel" data-bs-slide-to="${i}" 
+                                     ${
+                                       i === 0 ? 'class="active"' : ""
+                                     }></button>`
+                                  )
+                                  .join("")}
+                            </div>
+                            <div class="carousel-inner">
+                                ${carouselItems}
+                            </div>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#berkasCarousel" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Previous</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#berkasCarousel" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Next</span>
+                            </button>
+                        </div>
+                        <style>
+                            .carousel-control-prev-icon,
+                            .carousel-control-next-icon {
+                                filter: invert(1);
+                            }
+                           
+                                .carousel-indicators [data-bs-target] {
+    background-color: #0051ffff !important; 
+}
+
+                                #berkasCarousel .carousel-indicators {
+    transform: translateY(20px);
+}
+
+                        </style>
+                    `;
+        }
+      } else {
+        console.warn("No files found or invalid response format");
+      }
+
+      const htmlContent = `
                 <table class="table text-start">
-                    <tr><td><strong>Nomor Pengajuan</strong></td><td>${data.nomor_pengajuan}</td></tr>
-                    <tr><td><strong>Nama Warga</strong></td><td>${data.nama_warga || data.nama_lengkap || '-'}</td></tr>
-                    <tr><td><strong>Jenis Dokumen</strong></td><td>${data.nama_dokumen}</td></tr>
-                    <tr><td><strong>Keperluan</strong></td><td>${data.keperluan || '-'}</td></tr>
-                    <tr><td><strong>Status</strong></td><td><span class="badge bg-${data.warna_badge}">${data.nama_status}</span></td></tr>
-                    <tr><td><strong>Tanggal Pengajuan</strong></td><td>${data.tanggal_pengajuan}</td></tr>
+                    <tr><td><strong>Nomor Pengajuan</strong></td><td>${
+                      data.nomor_pengajuan || "-"
+                    }</td></tr>
+                    <tr><td><strong>Nama Warga</strong></td><td>${
+                      data.nama_warga || data.nama_lengkap || "-"
+                    }</td></tr>
+                    <tr><td><strong>Jenis Dokumen</strong></td><td>${
+                      data.nama_dokumen || "-"
+                    }</td></tr>
+                    <tr><td><strong>Keperluan</strong></td><td>${
+                      data.keperluan || "-"
+                    }</td></tr>
+                    <tr><td><strong>Status</strong></td><td><span class="badge bg-${
+                      data.warna_badge || "secondary"
+                    }">${data.nama_status || "-"}</span></td></tr>
+                    <tr><td><strong>Tanggal Pengajuan</strong></td><td>${
+                      data.tanggal_pengajuan || "-"
+                    }</td></tr>
                     <tr><td colspan="2"><hr><strong>Keterangan:</strong><br>${keterangan}</td></tr>
-                    ${data.catatan_validasi ? `<tr><td colspan="2"><hr><strong>Catatan Validasi:</strong><br>${data.catatan_validasi}</td></tr>` : ''}
+                    ${
+                      data.catatan_validasi
+                        ? `<tr><td colspan="2"><hr><strong>Catatan Validasi:</strong><br>${data.catatan_validasi}</td></tr>`
+                        : ""
+                    }
                 </table>
                 <hr>
                 <h6><i class="fas fa-paperclip"></i> Berkas Pendukung:</h6>
                 ${berkasHTML}
             `;
 
-            Swal.fire({
-                title: 'Detail Pengajuan',
-                html: htmlContent,
-                width: 700,
-                showCloseButton: true,
-                confirmButtonText: 'Tutup'
-            });
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showError('Gagal memuat detail berkas');
-        });
+      Swal.fire({
+        title: "Detail Pengajuan",
+        html: htmlContent,
+        width: 900,
+        showCloseButton: true,
+        confirmButtonText: "Tutup",
+      });
+    })
+    .catch((error) => {
+      console.error("Fetch Error Details:", error);
+      showError("Gagal memuat detail berkas: " + error.message);
+    });
 }
 
 // ============================================
@@ -310,31 +516,32 @@ function viewDetail(data) {
  * @param {string} tableId - ID table
  */
 function filterTable(inputId, tableId) {
-    const input = document.getElementById(inputId);
-    const table = document.getElementById(tableId);
-    
-    if (!input || !table) return;
-    
-    const filter = input.value.toUpperCase();
-    const rows = table.getElementsByTagName('tr');
-    
-    for (let i = 1; i < rows.length; i++) { // Skip header
-        const cells = rows[i].getElementsByTagName('td');
-        let found = false;
-        
-        for (let j = 0; j < cells.length; j++) {
-            const cell = cells[j];
-            if (cell) {
-                const txtValue = cell.textContent || cell.innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    found = true;
-                    break;
-                }
-            }
+  const input = document.getElementById(inputId);
+  const table = document.getElementById(tableId);
+
+  if (!input || !table) return;
+
+  const filter = input.value.toUpperCase();
+  const rows = table.getElementsByTagName("tr");
+
+  for (let i = 1; i < rows.length; i++) {
+    // Skip header
+    const cells = rows[i].getElementsByTagName("td");
+    let found = false;
+
+    for (let j = 0; j < cells.length; j++) {
+      const cell = cells[j];
+      if (cell) {
+        const txtValue = cell.textContent || cell.innerText;
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+          found = true;
+          break;
         }
-        
-        rows[i].style.display = found ? '' : 'none';
+      }
     }
+
+    rows[i].style.display = found ? "" : "none";
+  }
 }
 
 // ============================================
@@ -346,19 +553,19 @@ function filterTable(inputId, tableId) {
  * @param {string} formId - ID form
  */
 function resetForm(formId) {
-    Swal.fire({
-        title: 'Reset Form?',
-        text: 'Semua data yang sudah diisi akan hilang',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Ya, Reset',
-        cancelButtonText: 'Batal'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            document.getElementById(formId).reset();
-            showSuccess('Form berhasil direset');
-        }
-    });
+  Swal.fire({
+    title: "Reset Form?",
+    text: "Semua data yang sudah diisi akan hilang",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Ya, Reset",
+    cancelButtonText: "Batal",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      document.getElementById(formId).reset();
+      showSuccess("Form berhasil direset");
+    }
+  });
 }
 
 /**
@@ -367,23 +574,23 @@ function resetForm(formId) {
  * @returns {boolean} - true jika valid
  */
 function validateForm(form) {
-    const requiredFields = form.querySelectorAll('[required]');
-    let isValid = true;
-    
-    requiredFields.forEach(field => {
-        if (!field.value.trim()) {
-            isValid = false;
-            field.classList.add('is-invalid');
-        } else {
-            field.classList.remove('is-invalid');
-        }
-    });
-    
-    if (!isValid) {
-        showError('Mohon lengkapi semua field yang wajib diisi');
+  const requiredFields = form.querySelectorAll("[required]");
+  let isValid = true;
+
+  requiredFields.forEach((field) => {
+    if (!field.value.trim()) {
+      isValid = false;
+      field.classList.add("is-invalid");
+    } else {
+      field.classList.remove("is-invalid");
     }
-    
-    return isValid;
+  });
+
+  if (!isValid) {
+    showError("Mohon lengkapi semua field yang wajib diisi");
+  }
+
+  return isValid;
 }
 
 // ============================================
@@ -394,13 +601,13 @@ function validateForm(form) {
  * Auto dismiss Bootstrap alerts setelah beberapa detik
  */
 function initAutoDismissAlerts() {
-    const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
-    alerts.forEach(alert => {
-        setTimeout(() => {
-            const bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
-        }, 5000);
-    });
+  const alerts = document.querySelectorAll(".alert:not(.alert-permanent)");
+  alerts.forEach((alert) => {
+    setTimeout(() => {
+      const bsAlert = new bootstrap.Alert(alert);
+      bsAlert.close();
+    }, 5000);
+  });
 }
 
 // ============================================
@@ -412,26 +619,26 @@ function initAutoDismissAlerts() {
  * @param {string} sectionId - ID section yang akan ditampilkan
  */
 function showSection(sectionId) {
-    // Hide all sections
-    const sections = document.querySelectorAll('.content-section');
-    sections.forEach(section => {
-        section.style.display = 'none';
-    });
-    
-    // Show selected section
-    const targetSection = document.getElementById(sectionId);
-    if (targetSection) {
-        targetSection.style.display = 'block';
+  // Hide all sections
+  const sections = document.querySelectorAll(".content-section");
+  sections.forEach((section) => {
+    section.style.display = "none";
+  });
+
+  // Show selected section
+  const targetSection = document.getElementById(sectionId);
+  if (targetSection) {
+    targetSection.style.display = "block";
+  }
+
+  // Update active menu
+  const navLinks = document.querySelectorAll(".sidebar .nav-link");
+  navLinks.forEach((link) => {
+    link.classList.remove("active");
+    if (link.getAttribute("data-section") === sectionId) {
+      link.classList.add("active");
     }
-    
-    // Update active menu
-    const navLinks = document.querySelectorAll('.sidebar .nav-link');
-    navLinks.forEach(link => {
-        link.classList.remove('active');
-        if (link.getAttribute('data-section') === sectionId) {
-            link.classList.add('active');
-        }
-    });
+  });
 }
 
 // ============================================
@@ -441,21 +648,23 @@ function showSection(sectionId) {
 /**
  * Inisialisasi fungsi-fungsi saat DOM ready
  */
-document.addEventListener('DOMContentLoaded', function() {
-    // Init clock jika ada element
-    if (document.getElementById('realtime-clock')) {
-        initClock();
-    }
-    
-    // Init auto dismiss alerts
-    initAutoDismissAlerts();
-    
-    // Handle section navigation via URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const section = urlParams.get('section');
-    if (section) {
-        showSection(section);
-    }
+document.addEventListener("DOMContentLoaded", function () {
+  console.log("main.js loaded successfully");
+
+  // Init clock jika ada element
+  if (document.getElementById("realtime-clock")) {
+    initClock();
+  }
+
+  // Init auto dismiss alerts
+  initAutoDismissAlerts();
+
+  // Handle section navigation via URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const section = urlParams.get("section");
+  if (section) {
+    showSection(section);
+  }
 });
 
 // ============================================
@@ -467,10 +676,13 @@ document.addEventListener('DOMContentLoaded', function() {
  * @param {string} text - Text yang akan dicopy
  */
 function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        showSuccess('Berhasil disalin ke clipboard', 1000);
-    }).catch(() => {
-        showError('Gagal menyalin ke clipboard');
+  navigator.clipboard
+    .writeText(text)
+    .then(() => {
+      showSuccess("Berhasil disalin ke clipboard", 1000);
+    })
+    .catch(() => {
+      showError("Gagal menyalin ke clipboard");
     });
 }
 
@@ -479,14 +691,14 @@ function copyToClipboard(text) {
  * @param {string} elementId - ID element yang akan diprint
  */
 function printElement(elementId) {
-    const element = document.getElementById(elementId);
-    if (!element) {
-        showError('Element tidak ditemukan');
-        return;
-    }
-    
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
+  const element = document.getElementById(elementId);
+  if (!element) {
+    showError("Element tidak ditemukan");
+    return;
+  }
+
+  const printWindow = window.open("", "_blank");
+  printWindow.document.write(`
         <!DOCTYPE html>
         <html>
         <head>
@@ -510,7 +722,7 @@ function printElement(elementId) {
         </body>
         </html>
     `);
-    printWindow.document.close();
+  printWindow.document.close();
 }
 
 /**
@@ -520,32 +732,32 @@ function printElement(elementId) {
  * @returns {Function} - Debounced function
  */
 function debounce(func, wait = 300) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
     };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
 }
 
 // Export functions untuk module (jika diperlukan)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        confirmDelete,
-        showLoading,
-        hideLoading,
-        showSuccess,
-        showError,
-        showInfo,
-        validateFile,
-        formatFileSize,
-        previewFile,
-        formatRupiah,
-        viewDetail,
-        updateClock,
-        initClock
-    };
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    confirmDelete,
+    showLoading,
+    hideLoading,
+    showSuccess,
+    showError,
+    showInfo,
+    validateFile,
+    formatFileSize,
+    previewFile,
+    formatRupiah,
+    viewDetail,
+    updateClock,
+    initClock,
+  };
 }

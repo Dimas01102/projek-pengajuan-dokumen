@@ -14,7 +14,7 @@
             </div>
 
             <!-- Kolom 2: Menu Cepat -->
-            <div class="col-md-4 mb-4 mb-md-0">
+            <div classy="col-md-4 mb-4 mb-md-0">
                 <h5>Menu Cepat</h5>
                 <ul>
                     <li><i class="fas fa-chevron-right me-2"></i><a href="index.php#home">Beranda</a></li>

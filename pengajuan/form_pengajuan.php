@@ -61,6 +61,7 @@ $result_jenis = mysqli_query($conn, $query_jenis);
                 <h5 class="mb-0">Form Pengajuan Dokumen</h5>
                 <div>
                     <span class="me-3"><i class="fas fa-user"></i> <?= $user_data['nama_lengkap'] ?></span>
+                    <span class="badge bg-success">Warga</span>
                 </div>
             </div>
 

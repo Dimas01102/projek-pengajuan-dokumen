@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="row">
             <div class="col">
                 <div class="login-card">
-                    <button type="button" class="btn-close-custom" onclick="window.location.href='/index.php'">
+                    <button type="button" class="btn-close-custom" onclick="window.location.href='index.php'">
                         X
                     </button>
 

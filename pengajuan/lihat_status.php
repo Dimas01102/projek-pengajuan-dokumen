@@ -90,6 +90,10 @@ $result_pengajuan = mysqli_query($conn, $query_pengajuan);
             font-size: 0.875rem;
             color: #6c757d;
         }
+
+        .btn-action {
+            margin: 4px 0;
+        }
     </style>
 </head>
 
@@ -128,6 +132,7 @@ $result_pengajuan = mysqli_query($conn, $query_pengajuan);
                 <h5 class="mb-0">Status Pengajuan Dokumen</h5>
                 <div>
                     <span class="me-3"><i class="fas fa-user"></i> <?= $user_data['nama_lengkap'] ?></span>
+                    <span class="badge bg-success">Warga</span>
                 </div>
             </div>
 
@@ -289,11 +294,11 @@ $result_pengajuan = mysqli_query($conn, $query_pengajuan);
                                                 <td><?= format_tanggal($row['tanggal_pengajuan']) ?></td>
                                                 <td><?= get_status_badge($row['nama_status'], $row['warna_badge']) ?></td>
                                                 <td>
-                                                    <a href="lihat_status.php?id=<?= $row['id_pengajuan'] ?>" class="btn btn-sm btn-info">
+                                                    <a href="lihat_status.php?id=<?= $row['id_pengajuan'] ?>" class="btn btn-sm btn-info btn-action">
                                                         <i class="fas fa-eye"></i> Detail
                                                     </a>
                                                     <?php if ($row['id_status'] == 2): ?>
-                                                        <a href="unduh_surat.php?id=<?= $row['id_pengajuan'] ?>" class="btn btn-sm btn-success">
+                                                        <a href="unduh_surat.php?id=<?= $row['id_pengajuan'] ?>" class="btn btn-sm btn-success btn-action">
                                                             <i class="fas fa-download"></i> Unduh
                                                         </a>
                                                     <?php endif; ?>

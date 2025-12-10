@@ -2,7 +2,7 @@
 require_once '../includes/config.php';
 require_once '../includes/auth.php';
 require_once '../includes/functions.php';
-require_once 'petugas_handler.php';
+require_once '../handler/petugas_handler.php';
 
 ?>
 <!DOCTYPE html>

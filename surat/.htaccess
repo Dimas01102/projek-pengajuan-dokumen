@@ -1,0 +1,37 @@
+# =============================================
+# SURAT FOLDER - PROTEKSI FILE UPLOAD (FIXED)
+# =============================================
+
+# Disable directory listing
+Options -Indexes
+
+# Block PHP execution menggunakan RewriteRule (lebih kompatibel)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Blok eksekusi file PHP
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule \.(php|php3|php4|php5|phtml|pl|py|jsp|asp|htm|shtml|sh|cgi)$ - [F,L]
+</IfModule>
+
+# ALTERNATIF: Jika mod_rewrite tidak bisa, pakai ini
+<FilesMatch "\.(php|php3|php4|php5|phtml|pl|py|jsp|asp|htm|shtml|sh|cgi)$">
+    <IfVersion < 2.4>
+        Order Allow,Deny
+        Deny from all
+    </IfVersion>
+    <IfVersion >= 2.4>
+        Require all denied
+    </IfVersion>
+</FilesMatch>
+
+# Izinkan akses hanya untuk file dokumen
+<FilesMatch "\.(pdf|jpg|jpeg|png|gif|doc|docx|xls|xlsx)$">
+    <IfVersion < 2.4>
+        Order Allow,Deny
+        Allow from all
+    </IfVersion>
+    <IfVersion >= 2.4>
+        Require all granted
+    </IfVersion>
+</FilesMatch>

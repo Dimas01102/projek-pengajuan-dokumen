@@ -1,8 +1,8 @@
 <?php
 require_once '../includes/config.php';
-require_once '../includes/auth.php';
 require_once '../includes/functions.php';
-require_once 'admin_handler.php';
+require_once '../includes/auth.php';
+require_once '../handler/admin_handler.php';
 
 ?>
 
@@ -310,7 +310,7 @@ require_once 'admin_handler.php';
                         <div class="d-flex justify-content-end mb-2">
                             <small class="text-muted">Halaman <?= $page ?> dari <?= $total_pages_jenis ?> (Total: <?= $total_jenis_count ?> data)</small>
                         </div>
-                        <!-- UPDATE TABEL JENIS DOKUMEN -->
+                        <!--TABEL JENIS DOKUMEN -->
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead>
@@ -732,6 +732,7 @@ require_once 'admin_handler.php';
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../assets/js/admin.js"></script>
     <script src="../assets/js/main.js"></script>
     <script>
         // Flash Message 
@@ -893,7 +894,7 @@ require_once 'admin_handler.php';
             new bootstrap.Modal(document.getElementById('jenisModal')).show();
         }
 
-        // Edit jenis dokumen - UPDATED
+        // Edit jenis dokumen 
         function editJenis(data) {
             document.getElementById('jenisModalTitle').textContent = 'Edit Jenis Dokumen';
             document.getElementById('jenis_id').value = data.id;
@@ -930,7 +931,7 @@ require_once 'admin_handler.php';
             new bootstrap.Modal(document.getElementById('jenisModal')).show();
         }
 
-        // Tambah field row (tidak berubah, tetap sama seperti sebelumnya)
+        // Tambah field row
         function addFieldRow(fieldData = null) {
             fieldCounter++;
             const container = document.getElementById('fieldContainer');
@@ -1069,7 +1070,7 @@ require_once 'admin_handler.php';
                 confirmButtonText: 'Ya, Hapus!',
                 cancelButtonText: 'Batal'
             }).then((result) => {
-                if (result.isConfirmed) {
+                if (result.isConfirmzed) {
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.innerHTML = '<input type="hidden" name="id_jenis" value="' + id + '"><input type="hidden" name="delete_jenis" value="1">';

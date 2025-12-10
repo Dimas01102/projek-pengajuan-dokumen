@@ -2,7 +2,8 @@
 require_once '../includes/config.php';
 require_once '../includes/auth.php';
 require_once '../includes/functions.php';
-require_once 'warga_handler.php';
+require_once '../handler/warga_handler.php';
+
 
 ?>
 <!DOCTYPE html>
@@ -231,7 +232,7 @@ require_once 'warga_handler.php';
                 cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.href = '../includes/logout.php';
+                    window.location.href = '/includes/logout.php';
                 }
             });
         </script>";

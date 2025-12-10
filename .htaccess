@@ -1,0 +1,67 @@
+# =============================================
+# ROOT .htaccess - PROJECT PENGAJUAN DOKUMEN
+# =============================================
+
+# ERROR DOCUMENTS
+ErrorDocument 403 /project_pengajuan_dokumen/403.php
+ErrorDocument 404 /project_pengajuan_dokumen/404.php
+ErrorDocument 500 /project_pengajuan_dokumen/500.php
+
+# PROTEKSI FOLDER INCLUDES
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Proteksi folder includes KECUALI logout.php
+    RewriteCond %{REQUEST_URI} ^/project_pengajuan_dokumen/includes/ [NC]
+    RewriteCond %{REQUEST_URI} !logout\.php$ [NC]
+    RewriteRule ^(.*)$ - [F,L]
+</IfModule>
+
+# PROTEKSI FILE CONFIG
+<FilesMatch "\.(ini|log|sh|sql|htpasswd)$">
+    <IfVersion < 2.4>
+        Order Allow,Deny
+        Deny from all
+    </IfVersion>
+    <IfVersion >= 2.4>
+        Require all denied
+    </IfVersion>
+</FilesMatch>
+
+<Files "config.php">
+    <IfVersion < 2.4>
+        Order Allow,Deny
+        Deny from all
+    </IfVersion>
+    <IfVersion >= 2.4>
+        Require all denied
+    </IfVersion>
+</Files>
+
+# PROTEKSI FILE SENSITIVE
+<FilesMatch "(composer\.(json|lock)|generate_password_hash\.php)$">
+    <IfVersion < 2.4>
+        Order Allow,Deny
+        Deny from all
+    </IfVersion>
+    <IfVersion >= 2.4>
+        Require all denied
+    </IfVersion>
+</FilesMatch>
+
+# DISABLE DIRECTORY LISTING
+Options -Indexes
+
+# PROTECT HTACCESS
+<Files .htaccess>
+    <IfVersion < 2.4>
+        Order Allow,Deny
+        Deny from all
+    </IfVersion>
+    <IfVersion >= 2.4>
+        Require all denied
+    </IfVersion>
+</Files>
+
+# HIDE PHP VERSION
+ServerSignature Off

@@ -170,7 +170,7 @@ body.auth-page::before {
     left: 15px;
     top: 12px;
     color: rgba(0, 0, 0, 0.7);
-    font-size: 15px;
+    font-size: 20px;
     pointer-events: none;
     transition: all 0.3s ease;
     background: transparent;
@@ -180,7 +180,7 @@ body.auth-page::before {
 .form-input:not(:placeholder-shown) + .form-label {
     top: -18px;
     left: 10px;
-    font-size: 12px;
+    font-size: 15px;
     color: #2c3e50;
     font-weight: 600;
 }

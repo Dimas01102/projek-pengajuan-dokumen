@@ -1,8 +1,10 @@
 <?php
+// Set timezone Indonesia di awal file
+date_default_timezone_set('Asia/Jakarta');
+
 require_once '../includes/config.php';
 require_once '../includes/auth.php';
 require_once '../includes/functions.php';
-
 require_once '../vendor/autoload.php';
 
 require_login();
@@ -45,61 +47,31 @@ function get_field_val($ket, $label)
 
 // Fungsi untuk convert PNG dengan alpha channel ke JPEG untuk TCPDF
 function convertPNGtoJPG($imagePath) {
-    if (!file_exists($imagePath)) {
-        return null;
-    }
+    if (!file_exists($imagePath)) return null;
     
     $ext = strtolower(pathinfo($imagePath, PATHINFO_EXTENSION));
+    if ($ext !== 'png') return $imagePath;
     
-    // Jika bukan PNG, return langsung
-    if ($ext !== 'png') {
-        return $imagePath;
-    }
-    
-    // Cek apakah GD tersedia
-    if (!extension_loaded('gd') || !function_exists('imagecreatefrompng')) {
-        return null;
-    }
+    if (!extension_loaded('gd') || !function_exists('imagecreatefrompng')) return null;
     
     try {
-        // Buat temporary file
         $tempPath = sys_get_temp_dir() . '/tcpdf_converted_' . md5($imagePath . time()) . '.jpg';
-        
-        // Load PNG
         $source = @imagecreatefrompng($imagePath);
-        if (!$source) {
-            return null;
-        }
+        if (!$source) return null;
         
-        // Dapatkan dimensi
         $width = imagesx($source);
         $height = imagesy($source);
-        
-        // Buat image baru dengan background putih
         $output = imagecreatetruecolor($width, $height);
-        
-        // Set background putih
         $white = imagecolorallocate($output, 255, 255, 255);
         imagefill($output, 0, 0, $white);
-        
-        // Disable alpha blending untuk background
         imagealphablending($output, true);
-        
-        // Copy source ke output (flatten alpha channel)
         imagecopy($output, $source, 0, 0, 0, 0, $width, $height);
-        
-        // Save sebagai JPEG dengan kualitas tinggi
         $success = imagejpeg($output, $tempPath, 95);
         
-        // Cleanup memory
-        imagedestroy($source);
-        imagedestroy($output);
+        // imagedestroy($source); // Deprecated di PHP 8+
+        // imagedestroy($output); // Deprecated di PHP 8+
         
-        if ($success && file_exists($tempPath)) {
-            return $tempPath;
-        }
-        
-        return null;
+        return ($success && file_exists($tempPath)) ? $tempPath : null;
     } catch (Exception $e) {
         error_log("Error converting PNG: " . $e->getMessage());
         return null;
@@ -121,72 +93,46 @@ $tanggal_sekarang = date('d') . ' ' . getBulanIndonesia(date('n')) . ' ' . date(
 // Handle PDF Download dengan TCPDF
 if (isset($_GET['download']) && $_GET['download'] == 'pdf') {
     try {
-        // Buat objek TCPDF
         $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
         
-        // Set dokumen info
         $pdf->SetCreator('Sistem Pengajuan Dokumen');
         $pdf->SetAuthor('Pemerintah Desa/Kelurahan');
         $pdf->SetTitle($data['nama_dokumen']);
         
-        // Hapus header/footer default
         $pdf->setPrintHeader(false);
         $pdf->setPrintFooter(false);
-        
-        // Set margins - perbesar margin bawah untuk footer
         $pdf->SetMargins(20, 15, 20);
         $pdf->SetAutoPageBreak(true, 25);
-        
-        // Tambah halaman
         $pdf->AddPage();
-        
-        // Set font
         $pdf->SetFont('times', '', 12);
         
-        // HEADER dengan logo
+        // ==================== HEADER KOP SURAT ====================
         $logo_path = __DIR__ . '/../assets/img/logo.jpg';
         $logo_converted = convertPNGtoJPG($logo_path);
         
-        // Simpan posisi Y awal
-        $start_y = 15;
-        $pdf->SetY($start_y);
+        $start_y = 20; // Posisi Y dari atas
+        $logo_size = 22; // Ukuran 22mm agar sesuai preview 85px
+        $logo_x = 18; // GESER KE KIRI dari 22mm jadi 18mm
         
-        // Gambar logo jika ada dan berhasil dikonversi
-        $logo_width = 0;
         if ($logo_converted && file_exists($logo_converted)) {
             try {
-                $pdf->Image($logo_converted, 20, $start_y, 20, 20, '', '', '', false, 300, '', false, false, 0);
-                $logo_width = 25; // 20 (width) + 5 (spacing)
+                $pdf->Image($logo_converted, $logo_x, $start_y, $logo_size, $logo_size, '', '', '', false, 300, '', false, false, 0);
             } catch (Exception $e) {
                 error_log("Error inserting logo: " . $e->getMessage());
             }
         }
         
-        // Header text - disesuaikan posisi agar tidak tertutup logo
-        $text_x = 20 + $logo_width;
-        $text_width = 170 - $logo_width;
-        
         $pdf->SetY($start_y);
-        $pdf->SetX($text_x);
+        $pdf->SetFont('times', 'B', 16);
+        $pdf->Cell(0, 5, 'PEMERINTAH KOTA BATAM', 0, 1, 'C');
         $pdf->SetFont('times', 'B', 14);
-        $pdf->Cell($text_width, 5, 'PEMERINTAH KOTA BATAM', 0, 1, 'C');
-        
-        $pdf->SetX($text_x);
+        $pdf->Cell(0, 5, 'KECAMATAN LUBUK BAJA', 0, 1, 'C');
         $pdf->SetFont('times', 'B', 12);
-        $pdf->Cell($text_width, 5, 'KECAMATAN LUBUK BAJA', 0, 1, 'C');
+        $pdf->Cell(0, 5, 'KELURAHAN BALOI INDAH', 0, 1, 'C');
+        $pdf->SetFont('times', '', 10);
+        $pdf->Cell(0, 4, 'Jalan: Jl. Bunga Raya No.03, Baloi Indah, Lubuk Baja, Kota Batam, Kepulauan Riau 29444', 0, 1, 'C');
+        $pdf->Cell(0, 4, 'Telepon: (0778) 458420 | Email: www.batam.linlk@gmail.com', 0, 1, 'C');
         
-        $pdf->SetX($text_x);
-        $pdf->SetFont('times', 'B', 11);
-        $pdf->Cell($text_width, 5, 'KELURAHAN/DESA BALOI INDAH', 0, 1, 'C');
-        
-        $pdf->SetX($text_x);
-        $pdf->SetFont('times', '', 9);
-        $pdf->Cell($text_width, 4, 'Jalan: Jl. Bunga Raya No.03, Baloi Indah, Lubuk Baja, Kota Batam, Kepulauan Riau 29444.', 0, 1, 'C');
-        
-        $pdf->SetX($text_x);
-        $pdf->Cell($text_width, 4, 'Telepon: (0778) 458420 | Email: www.batam.linlk@gmail.com', 0, 1, 'C');
-        
-        // Garis bawah header (double line)
         $pdf->Ln(2);
         $y_line = $pdf->GetY();
         $pdf->SetLineWidth(0.8);
@@ -194,24 +140,22 @@ if (isset($_GET['download']) && $_GET['download'] == 'pdf') {
         $pdf->SetLineWidth(0.3);
         $pdf->Line(20, $y_line + 1, 190, $y_line + 1);
         
-        // Title
+        // ==================== TITLE ====================
         $pdf->Ln(8);
         $pdf->SetFont('times', '', 11);
         $pdf->Cell(0, 5, 'Nomor: ' . ($data['nomor_surat'] ?? 'BELUM DITERBITKAN'), 0, 1, 'C');
-        $pdf->SetFont('times', 'BU', 13);
+        $pdf->SetFont('times', 'BU', 14);
         $pdf->Cell(0, 6, strtoupper($data['nama_dokumen']), 0, 1, 'C');
         
-        // Content - PERBAIKAN UTAMA DI SINI
+        // ==================== CONTENT ====================
         $pdf->Ln(6);
         $pdf->SetFont('times', '', 12);
         
-        // Paragraf pembuka dengan Write() untuk spacing yang lebih baik
+        // Paragraf pembuka dengan indent
         $pdf->Write(6, '       Yang bertanda tangan di bawah ini, Kepala Desa/Lurah Baloi Indah, Kecamatan Lubuk Baja, Kabupaten/Kota Batam, berdasarkan laporan dan keterangan yang diberikan oleh yang bersangkutan, dengan ini menerangkan bahwa:');
         $pdf->Ln(8);
         
         // Data table
-        $pdf->SetFont('times', '', 12);
-        
         $col1_width = 70;
         $col2_width = 5;
         
@@ -222,13 +166,8 @@ if (isset($_GET['download']) && $_GET['download'] == 'pdf') {
         ];
         
         foreach ($data_items as $item) {
-            $x_start = $pdf->GetX();
-            $y_start = $pdf->GetY();
-            
             $pdf->Cell($col1_width, 6, $item['label'], 0, 0, 'L');
             $pdf->Cell($col2_width, 6, ':', 0, 0, 'C');
-            
-            // Gunakan MultiCell untuk value yang panjang
             $pdf->MultiCell(0, 6, $item['value'], 0, 'L', 0, 1);
         }
         
@@ -248,31 +187,28 @@ if (isset($_GET['download']) && $_GET['download'] == 'pdf') {
             }
         }
         
-        // Paragraf penutup - Gunakan Write() untuk spacing normal
+        // Paragraf penutup dengan indent
         $pdf->Ln(4);
         $pdf->Write(6, '       Surat keterangan ini diberikan kepada yang bersangkutan berdasarkan fakta dan data yang tertulis dalam administrasi Kelurahan/Desa kami, untuk keperluan ' . strtoupper($data['keperluan']) . '.');
-        $pdf->Ln(8);
+        $pdf->Ln(6);
         
         $pdf->Write(6, '       Surat keterangan ini berlaku sejak tanggal diterbitkan dan dapat digunakan sebagaimana mestinya di hadapan instansi pemerintah maupun non-pemerintah yang memerlukan.');
-        $pdf->Ln(8);
+        $pdf->Ln(6);
         
         $pdf->Write(6, '       Demikian surat keterangan ini kami buat dengan sebenarnya agar dapat dipergunakan sebagaimana mestinya.');
         
-        // Tanda tangan - Cek ruang tersisa sebelum menambahkan
+        // ==================== TANDA TANGAN ====================
         $current_y = $pdf->GetY();
         $page_height = $pdf->getPageHeight();
         $bottom_margin = 25;
-        $space_needed = 60; // Ruang yang dibutuhkan untuk TTD + NIP + Footer
+        $space_needed = 60;
         
-        // Jika tidak cukup ruang, tambah halaman baru
         if (($current_y + $space_needed) > ($page_height - $bottom_margin)) {
             $pdf->AddPage();
-            $current_y = $pdf->GetY();
         }
         
-        $pdf->Ln(8);
+        $pdf->Ln(10);
         
-        // Kolom kiri kosong, kolom kanan untuk TTD
         $pdf->Cell(100, 6, '', 0, 0, 'L');
         $pdf->SetFont('times', '', 12);
         $pdf->Cell(0, 6, 'Batam, ' . $tanggal_sekarang, 0, 1, 'C');
@@ -280,12 +216,10 @@ if (isset($_GET['download']) && $_GET['download'] == 'pdf') {
         $pdf->Ln(1);
         $pdf->Cell(100, 6, '', 0, 0, 'L');
         $pdf->SetFont('times', 'B', 12);
-        $pdf->Cell(0, 6, 'KEPALA DESA/LURAH', 0, 1, 'C');
+        $pdf->Cell(0, 6, 'KEPALA LURAH BALOI INDAH', 0, 1, 'C');
         
         // TTD Image
-        $ttd_paths = [
-            __DIR__ . '/../assets/img/ttd1.jpg'
-        ];
+        $ttd_paths = [__DIR__ . '/../assets/img/ttd1.jpg'];
         $ttd_found = false;
         
         foreach ($ttd_paths as $ttd_path) {
@@ -312,7 +246,7 @@ if (isset($_GET['download']) && $_GET['download'] == 'pdf') {
         $pdf->Cell(100, 6, '', 0, 0, 'L');
         $pdf->Cell(0, 6, 'NIP: -', 0, 1, 'C');
         
-        // Footer - pastikan ada di halaman yang sama atau pindah ke halaman baru jika perlu
+        // ==================== FOOTER ====================
         $current_y = $pdf->GetY();
         if (($current_y + 20) > ($page_height - $bottom_margin)) {
             $pdf->AddPage();
@@ -322,30 +256,43 @@ if (isset($_GET['download']) && $_GET['download'] == 'pdf') {
         $pdf->SetFont('times', 'I', 9);
         $pdf->SetTextColor(100, 100, 100);
         $pdf->Cell(0, 4, 'Dokumen ini diterbitkan secara resmi oleh Pemerintah Desa/Kelurahan berdasarkan peraturan yang berlaku', 0, 1, 'C');
-        $pdf->Cell(0, 4, 'Dicetak pada: ' . date('d/m/Y H:i:s') . ' WIB', 0, 1, 'C');
         
-        // WATERMARK - Tambahkan ke setiap halaman
+        // Tanggal cetak sudah pakai timezone Asia/Jakarta dari awal file
+        $tanggal_cetak = date('d/m/Y H:i:s');
+        $pdf->Cell(0, 4, 'Dicetak pada: ' . $tanggal_cetak . ' WIB', 0, 1, 'C');
+        
+        // ==================== WATERMARK ====================
         $total_pages = $pdf->getNumPages();
         for ($page_num = 1; $page_num <= $total_pages; $page_num++) {
             $pdf->setPage($page_num);
+            
+            // Reset untuk setiap halaman
             $pdf->SetTextColor(200, 200, 200);
             $pdf->SetAlpha(0.15);
             $pdf->SetFont('times', 'B', 60);
             
-            // Posisi watermark di tengah halaman
             $page_width = $pdf->getPageWidth();
             $page_height = $pdf->getPageHeight();
+            
+            // Hitung center yang konsisten untuk semua halaman
             $x_center = $page_width / 2;
             $y_center = $page_height / 2;
             
+            // Hitung lebar text untuk centering yang tepat
+            $text = 'DOKUMEN RESMI';
+            $text_width = $pdf->GetStringWidth($text);
+            
             $pdf->StartTransform();
+            // Rotate dari center halaman
             $pdf->Rotate(45, $x_center, $y_center);
-            $pdf->Text($x_center - 60, $y_center, 'DOKUMEN RESMI');
+            // Posisi X dikurangi setengah lebar text agar benar-benar center
+            $pdf->Text($x_center - ($text_width / 2), $y_center, $text);
             $pdf->StopTransform();
+            
+            // Reset alpha dan warna
+            $pdf->SetAlpha(1);
+            $pdf->SetTextColor(0, 0, 0);
         }
-        
-        $pdf->SetAlpha(1);
-        $pdf->SetTextColor(0, 0, 0);
         
         // Output PDF
         $nama_dokumen_clean = preg_replace('/[^a-zA-Z0-9]/', '_', $data['nama_dokumen']);
@@ -382,224 +329,7 @@ foreach ($ttd_paths as $path) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($data['nama_dokumen']) ?> - <?= htmlspecialchars($data['nomor_surat'] ?? 'PREVIEW') ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Times New Roman', Times, serif;
-            background: #f5f5f5;
-            padding: 20px;
-        }
-        .page {
-            width: 210mm;
-            min-height: 297mm;
-            background: #fff;
-            margin: 0 auto;
-            padding: 20mm;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-        /* WATERMARK */
-        .page::before {
-            content: 'DOKUMEN RESMI';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 80px;
-            font-weight: bold;
-            color: rgba(200, 200, 200, 0.15);
-            white-space: nowrap;
-            z-index: 0;
-            pointer-events: none;
-        }
-        .page > * {
-            position: relative;
-            z-index: 1;
-        }
-        .header {
-            border-bottom: 3px double #000;
-            padding-bottom: 10px;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
-        }
-        .logo {
-            width: 70px;
-            height: 70px;
-            flex-shrink: 0;
-        }
-        .logo img {
-            width: 150%;
-            height: 100%;
-            object-fit: contain;
-        }
-        .header-text {
-            flex: 1;
-            text-align: center;
-            padding-top: 5px;
-        }
-        .header h1 {
-            font-size: 15px;
-            margin-bottom: 3px;
-            font-weight: bold;
-        }
-        .header h2 {
-            font-size: 13px;
-            margin-bottom: 2px;
-            font-weight: bold;
-        }
-        .header h3 {
-            font-size: 12px;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-        .header p {
-            font-size: 10px;
-            line-height: 1.5;
-        }
-        .title {
-            text-align: center;
-            margin: 25px 0 20px;
-        }
-        .title p {
-            font-size: 12px;
-            margin-bottom: 8px;
-        }
-        .title h1 {
-            font-size: 14px;
-            font-weight: bold;
-            text-decoration: underline;
-        }
-        .content {
-            font-size: 12px;
-            line-height: 1.8;
-            text-align: justify;
-            margin: 20px 0;
-        }
-        .content p {
-            margin-bottom: 12px;
-            text-indent: 40px;
-        }
-        .data-table {
-            margin: 15px 0 15px 40px;
-            width: calc(100% - 40px);
-            border-collapse: collapse;
-        }
-        .data-table tr td {
-            padding: 6px 0;
-            vertical-align: top;
-        }
-        .data-table tr td:first-child {
-            width: 230px;
-        }
-        .data-table tr td:nth-child(2) {
-            width: 15px;
-            text-align: center;
-            padding-right: 10px;
-        }
-        .signature {
-            margin-top: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-        .sig-left {
-            flex: 0 0 48%;
-        }
-        .sig-right {
-            flex: 0 0 48%;
-            text-align: center;
-        }
-        .sig-right .date {
-            font-size: 12px;
-            margin-bottom: 6px;
-        }
-        .sig-right .position {
-            font-weight: bold;
-            font-size: 12px;
-            margin-bottom: 8px;
-        }
-        .ttd-img {
-            width: 140px;
-            height: 70px;
-            margin: 5px auto 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .ttd-img img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-        .sig-right .name {
-            font-weight: bold;
-            text-decoration: underline;
-            font-size: 12px;
-            margin-top: 5px;
-        }
-        .sig-right .nip {
-            font-size: 11px;
-            margin-top: 2px;
-        }
-        .footer {
-            margin-top: 25px;
-            padding-top: 12px;
-            border-top: 1px solid #ccc;
-            text-align: center;
-            font-size: 9px;
-            font-style: italic;
-            color: #888;
-        }
-        .footer p {
-            margin: 2px 0;
-        }
-        .actions {
-            text-align: center;
-            margin: 20px 0;
-        }
-        .btn {
-            display: inline-block;
-            padding: 12px 30px;
-            margin: 0 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-        .btn-primary {
-            background: #007bff;
-            color: #fff;
-        }
-        .btn-secondary {
-            background: #6c757d;
-            color: #fff;
-        }
-        .btn:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        @media print {
-            .actions {
-                display: none;
-            }
-            body {
-                background: #fff;
-                padding: 0;
-            }
-            .page {
-                box-shadow: none;
-                margin: 0;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="../assets/css/unduh_surat.css">
 </head>
 <body>
     <div class="actions">
@@ -608,27 +338,31 @@ foreach ($ttd_paths as $path) {
     </div>
 
     <div class="page">
+        <!-- ==================== HEADER KOP SURAT ==================== -->
         <div class="header">
-            <div class="logo">
+            <div class="logo" style="width: 85px !important; height: 85px !important;">
                 <?php if (file_exists('../assets/img/logo.jpg')): ?>
-                    <img src="../assets/img/logo.jpg" alt="Logo">
+                    <img src="../assets/img/logo.jpg" alt="Logo" style="width: 85px !important; height: 85px !important; max-width: 85px !important; max-height: 85px !important;">
                 <?php endif; ?>
             </div>
             <div class="header-text">
                 <h1>PEMERINTAH KOTA BATAM</h1>
                 <h2>KECAMATAN LUBUK BAJA</h2>
                 <h3>KELURAHAN BALOI INDAH</h3>
-                <p>Jalan: Jl. Bunga Raya No.03, Baloi Indah, Lubuk Baja, Kota Batam, Kepulauan Riau 29444.<br>Telepon: (0778) 458420 | Email: www.batam.linlk@gmail.com</p>
+                <p>Jalan: Jl. Bunga Raya No.03, Baloi Indah, Lubuk Baja, Kota Batam, Kepulauan Riau 29444</p>
+                <p>Telepon: (0778) 458420 | Email: www.batam.linlk@gmail.com</p>
             </div>
         </div>
 
+        <!-- ==================== TITLE ==================== -->
         <div class="title">
             <p>Nomor: <?= htmlspecialchars($data['nomor_surat'] ?? 'BELUM DITERBITKAN') ?></p>
             <h1><?= strtoupper(htmlspecialchars($data['nama_dokumen'])) ?></h1>
         </div>
 
+        <!-- ==================== CONTENT ==================== -->
         <div class="content">
-            <p>Yang bertanda tangan di bawah ini, Kepala Desa/Lurah <strong></strong>, Kecamatan <strong>Lubuk Baja</strong>, Kabupaten/Kota <strong>Batam</strong>, berdasarkan laporan dan keterangan yang diberikan oleh yang bersangkutan, dengan ini menerangkan bahwa:</p>
+            <p>Yang bertanda tangan di bawah ini, Kepala Desa/Lurah Baloi Indah, Kecamatan Lubuk Baja, Kabupaten/Kota Batam, berdasarkan laporan dan keterangan yang diberikan oleh yang bersangkutan, dengan ini menerangkan bahwa:</p>
 
             <table class="data-table">
                 <tr>
@@ -665,10 +399,13 @@ foreach ($ttd_paths as $path) {
             <?php endif; ?>
 
             <p>Surat keterangan ini diberikan kepada yang bersangkutan berdasarkan fakta dan data yang tertulis dalam administrasi Kelurahan/Desa kami, untuk keperluan <strong><?= strtoupper(htmlspecialchars($data['keperluan'])) ?></strong>.</p>
+            
             <p>Surat keterangan ini berlaku sejak tanggal diterbitkan dan dapat digunakan sebagaimana mestinya di hadapan instansi pemerintah maupun non-pemerintah yang memerlukan.</p>
+            
             <p>Demikian surat keterangan ini kami buat dengan sebenarnya agar dapat dipergunakan sebagaimana mestinya.</p>
         </div>
 
+        <!-- ==================== SIGNATURE ==================== -->
         <div class="signature">
             <div class="sig-left"></div>
             <div class="sig-right">
@@ -688,6 +425,7 @@ foreach ($ttd_paths as $path) {
             </div>
         </div>
 
+        <!-- ==================== FOOTER ==================== -->
         <div class="footer">
             <p>Dokumen ini diterbitkan secara resmi oleh Pemerintah Desa/Kelurahan berdasarkan peraturan yang berlaku</p>
             <p>Dicetak pada: <?= date('d/m/Y H:i:s') ?> WIB</p>

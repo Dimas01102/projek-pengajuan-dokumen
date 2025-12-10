@@ -34,7 +34,7 @@ function login($username, $password) {
             
             return array('status' => true, 'role' => $user['role']);
         } else {
-            return array('status' => false, 'message' => 'Username/Password salah');
+            return array('status' => false, 'message' => 'Username/ Password salah');
         }
     } else {
         return array('status' => false, 'message' => 'Username tidak ditemukan');
