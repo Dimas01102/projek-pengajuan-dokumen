@@ -1,351 +1,165 @@
-# 📚 PANDUAN INSTALASI APLIKASI PENGAJUAN DOKUMEN WARGA DIGITAL
+Project Pengajuan Dokumen
 
-## 🎯 Ringkasan Aplikasi
+Sistem Project Pengajuan Dokumen adalah aplikasi berbasis web yang digunakan untuk proses pengajuan, validasi, dan pencetakan dokumen oleh tiga jenis pengguna: Admin, Petugas, dan Warga. Sistem ini menyediakan alur kerja terstruktur mulai dari pendaftaran akun, pengajuan dokumen, verifikasi, hingga pencetakan dokumen resmi dalam bentuk PDF.
 
-Aplikasi web untuk pengelolaan pengajuan dokumen kependudukan dengan fitur:
-- ✅ 3 Role User (Admin, Petugas, Warga)
-- ✅ 3 Jenis Dokumen (SKTM, SKU, SKD)
-- ✅ Form Dinamis per Jenis Dokumen
-- ✅ Upload Berkas Pendukung
-- ✅ Validasi oleh Petugas
-- ✅ Download Surat PDF
-- ✅ Notifikasi SweetAlert2
-- ✅ Design Modern Bootstrap 5
+Aplikasi ini dibangun menggunakan PHP Native dengan arsitektur terstruktur, didukung oleh integrasi PDF Generator, sistem error handling khusus, serta implementasi keamanan dasar seperti pembatasan akses dan proteksi direktori logs.
 
----
+Fitur Utama
+1. Hak Akses Multi-Role
 
-## 🛠️ INSTALASI STEP-BY-STEP
+Admin
+Mengelola seluruh data, user, riwayat pengajuan, dan master data.
 
-### LANGKAH 1: Persiapan Server
+Petugas
+Mengelola validasi dokumen yang diajukan oleh warga.
 
-**Requirements:**
-- PHP 7.4 atau lebih tinggi
-- MySQL 5.7 atau lebih tinggi
-- Apache/Nginx Web Server
-- phpMyAdmin (opsional, untuk manage database)
+Warga
+Melakukan pengajuan dokumen dan mencetak hasil setelah disetujui.
 
-**Untuk XAMPP/WAMPP:**
-1. Download dan install XAMPP dari https://www.apachefriends.org
-2. Start Apache dan MySQL dari XAMPP Control Panel
+2. Pengajuan Dokumen
 
-### LANGKAH 2: Buat Database
+Formulir lengkap untuk pengajuan.
 
-1. Buka browser, akses http://localhost/phpmyadmin
-2. Klik tab "SQL"
-3. Copy paste seluruh isi file SQL yang telah disediakan
-4. Klik "Go" untuk execute
+Upload berkas persyaratan.
 
-Database akan otomatis membuat:
-- 7 tabel utama
-- 3 jenis dokumen default
-- 3 akun user (admin, petugas, warga)
+Status pengajuan real-time.
 
-### LANGKAH 3: Setup Project Folder
+3. Validasi & Persetujuan
 
-1. Extract atau copy seluruh folder project ke:
-   - XAMPP: `C:\xampp\htdocs\project_pengajuan_dokumen\`
-   - WAMPP: `C:\wamp64\www\project_pengajuan_dokumen\`
-   - Linux: `/var/www/html/project_pengajuan_dokumen/`
+Petugas melakukan pengecekan dokumen.
 
-2. Buat folder untuk upload:
-```bash
-mkdir uploads
-mkdir surat
-chmod 777 uploads
-chmod 777 surat
-```
+Admin menerima notifikasi pengajuan baru.
 
-### LANGKAH 4: Konfigurasi Database
+Sistem mencatat seluruh riwayat perubahan status.
 
-Edit file `includes/config.php`:
+4. Pencetakan Dokumen (PDF)
 
-```php
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');  // Isi jika ada password MySQL
-define('DB_NAME', 'db_pengajuan_dokumen');
-define('BASE_URL', 'http://localhost/project_pengajuan_dokumen/');
-```
+Menggunakan TCPDF untuk membuat dokumen resmi dengan format yang telah distandarkan.
 
-### LANGKAH 5: Testing Akses
+5. Sistem Error Handler Khusus
 
-1. Buka browser
-2. Akses: http://localhost/project_pengajuan_dokumen/
-3. Anda akan melihat landing page
+Menangani fatal error, exception, dan runtime error.
 
----
+Redirect otomatis ke halaman 500 Internal Server Error.
 
-## 👥 AKUN DEFAULT
+Menyimpan log detail di folder logs/ yang dilindungi .htaccess.
 
-### Admin
-- **Username:** admin
-- **Password:** password123
-- **Akses:** Kelola user, lihat semua data
+6. Dashboard Per Role
 
-### Petugas
-- **Username:** petugas1
-- **Password:** password123
-- **Akses:** Validasi pengajuan, terbitkan surat
+Dashboard Admin
 
-### Warga
-- **Username:** warga1
-- **Password:** password123
-- **Akses:** Ajukan dokumen, download surat
+Dashboard Petugas
 
-⚠️ **PENTING:** Ganti password default setelah instalasi!
+Dashboard Warga
+Masing-masing dilengkapi informasi sesuai peran.
 
----
-
-## 📁 STRUKTUR FILE LENGKAP
-
-```
+Teknologi yang Digunakan
+Komponen	Teknologi
+Bahasa Pemrograman	PHP 8+
+Web Server	Apache (XAMPP)
+Database	MySQL
+PDF Generator	TCPDF
+Frontend	HTML, CSS, Bootstrap
+Session & Auth	PHP Native
+Error Logging	Custom Error Handler
+Struktur Folder (Ringkasan)
 project_pengajuan_dokumen/
 │
-├── 📄 index.php                    # Landing page
-├── 📄 login.php                    # Form login
-├── 📄 register.php                 # Form registrasi warga
+├── admin/                 # Modul Admin
+├── handler/               # Handler request (Admin, Petugas, Warga)
+├── includes/              # File global, koneksi, auth, error handler
+├── logs/                  # Error log (diproteksi .htaccess)
+│   └── php_errors.log
 │
-├── 📁 assets/
-│   ├── 📁 css/
-│   │   └── style.css              # Custom CSS
-│   ├── 📁 js/
-│   │   └── main.js                # JavaScript utilities
-│   └── 📁 img/                    # Gambar/ikon (buat sendiri)
+├── petugas/               # Modul Petugas
+├── warga/                 # Modul Warga
 │
-├── 📁 includes/
-│   ├── config.php                 # Konfigurasi database & session
-│   ├── auth.php                   # Login, logout, register
-│   ├── functions.php              # Fungsi utilitas
-│   └── logout.php                 # Proses logout
-│
-├── 📁 dashboard/
-│   ├── admin.php                  # Dashboard admin
-│   ├── petugas.php                # Dashboard petugas
-│   └── warga.php                  # Dashboard warga
-│
-├── 📁 pengajuan/
-│   ├── form_pengajuan.php         # Form pengajuan dinamis
-│   ├── proses_pengajuan.php       # Proses simpan pengajuan
-│   ├── lihat_status.php           # Lihat status pengajuan
-│   └── unduh_surat.php            # Download surat PDF
-│
-├── 📁 uploads/                     # Folder berkas warga (buat & chmod 777)
-├── 📁 surat/                       # Folder surat terbit (buat & chmod 777)
-│
-└── 📄 README.txt                   # Dokumentasi
-```
+├── vendor/                # Library TCPDF
+└── ...
 
----
+Instalasi
+1. Siapkan Lingkungan
 
-## 🎨 FITUR PER ROLE
+Install XAMPP
 
-### 👑 ADMIN
-| Fitur | Deskripsi |
-|-------|-----------|
-| Dashboard | Statistik lengkap (warga, petugas, pengajuan) |
-| Kelola User | Tambah, edit, aktifkan/nonaktifkan user |
-| Kelola Dokumen | Tambah/edit jenis dokumen (max 3 aktif) |
-| Laporan | Lihat semua pengajuan |
+Pastikan Apache & MySQL berjalan
 
-### 👮 PETUGAS
-| Fitur | Deskripsi |
-|-------|-----------|
-| Dashboard | Daftar pengajuan perlu validasi |
-| Verifikasi | Cek berkas & keterangan |
-| Validasi | Setujui/tolak dengan catatan |
-| Terbitkan Surat | Auto generate saat disetujui |
+2. Extract Project
 
-### 👤 WARGA
-| Fitur | Deskripsi |
-|-------|-----------|
-| Registrasi | Daftar akun baru |
-| Ajukan Dokumen | Form dinamis per jenis dokumen |
-| Upload Berkas | PDF/JPG max 5MB |
-| Cek Status | Real-time tracking |
-| Download Surat | Jika disetujui |
+Tempatkan folder ini ke:
 
----
+C:\xampp\htdocs\project_pengajuan_dokumen
 
-## 📋 JENIS DOKUMEN & FIELD DINAMIS
+3. Import Database
 
-### 1️⃣ SKTM (Surat Keterangan Tidak Mampu)
-Field khusus:
-- Nama Anak
-- Nama Sekolah
-- Penghasilan Orang Tua
-- Alasan Permohonan
+Buka phpMyAdmin
 
-**Kegunaan:** Bantuan sosial, beasiswa pendidikan
+Buat database baru, misalnya:
 
-### 2️⃣ SKU (Surat Keterangan Usaha)
-Field khusus:
-- Nama Usaha
-- Jenis Usaha
-- Alamat Usaha
-- Lama Usaha
+project_dokumen
 
-**Kegunaan:** Administrasi UMKM, perizinan
 
-### 3️⃣ SKD (Surat Keterangan Domisili)
-Field khusus:
-- Alamat Asal
-- Alamat Tujuan
-- Lama Tinggal
-- Alasan Pindah
+Import file .sql yang tersedia (jika ada)
 
-**Kegunaan:** Data kependudukan, administrasi
+4. Konfigurasi Koneksi Database
 
----
+Edit file:
 
-## 🔒 FITUR KEAMANAN
+includes/config.php
 
-- ✅ Password Hashing (bcrypt)
-- ✅ SQL Injection Prevention
-- ✅ XSS Protection
-- ✅ Session Management
-- ✅ Role-Based Access Control
-- ✅ File Upload Validation
-- ✅ CSRF Protection (form tokens)
 
----
+Isi dengan parameter server lokal Anda:
 
-## 🐛 TROUBLESHOOTING
+$host = 'localhost';
+$user = 'root';
+$pass = '';
+$db   = 'project_dokumen';
 
-### ❌ Error: Connection Failed
-**Solusi:**
-1. Cek MySQL service berjalan
-2. Cek username/password di config.php
-3. Pastikan database sudah dibuat
+Menjalankan Aplikasi
 
-### ❌ Error: Cannot write to uploads/
-**Solusi:**
-```bash
-chmod 777 uploads
-chmod 777 surat
-```
-Atau:
-```bash
-chown -R www-data:www-data uploads surat  # Linux
-```
+Buka browser dan akses:
 
-### ❌ Error: SweetAlert tidak muncul
-**Solusi:**
-1. Cek koneksi internet (untuk CDN)
-2. Atau download SweetAlert2 lokal
+http://localhost/project_pengajuan_dokumen/
 
-### ❌ File upload gagal
-**Solusi:**
-1. Edit php.ini:
-```ini
-upload_max_filesize = 10M
-post_max_size = 10M
-```
-2. Restart Apache
 
-### ❌ Error: Headers already sent
-**Solusi:**
-1. Hapus spasi/enter sebelum `<?php`
-2. Save file dengan encoding UTF-8 (no BOM)
+Login sesuai role.
+Jika pertama kali, buat akun atau gunakan data default (jika tersedia).
 
----
+Keamanan & Error Handling
+1. Error Handler Otomatis
 
-## 🚀 PENGEMBANGAN LANJUTAN
+Sistem menangani:
 
-### Fitur yang bisa ditambahkan:
+Fatal error
 
-1. **Notifikasi Email/WhatsApp**
-   - PHPMailer untuk email
-   - API WhatsApp untuk notif
+Parse error
 
-2. **Export Laporan**
-   - PHPExcel untuk Excel
-   - TCPDF untuk PDF profesional
+Uncaught exception
 
-3. **Dashboard Analytics**
-   - Chart.js untuk grafik
-   - DataTables untuk tabel interaktif
+User error
 
-4. **QR Code Verifikasi**
-   - Library QR Code PHP
-   - Scan untuk cek keaslian surat
+Semua dikirim ke:
 
-5. **Digital Signature**
-   - E-signature untuk petugas
-   - Timestamp verification
+logs/php_errors.log
 
-6. **Mobile App**
-   - Flutter/React Native
-   - API REST untuk backend
+2. Proteksi Log
 
----
+File .htaccess dalam logs/ mencegah akses langsung dari browser.
 
-## 📚 LIBRARY & CDN YANG DIGUNAKAN
+3. Timeout Buffer & HTTP Code
 
-| Library | Version | Fungsi |
-|---------|---------|--------|
-| Bootstrap | 5.3.0 | UI Framework |
-| Font Awesome | 6.4.0 | Icons |
-| SweetAlert2 | 11.x | Notifications |
-| jQuery | - | Tidak digunakan (pure JS) |
+Jika kesalahan serius terjadi:
 
-Semua library diambil dari CDN untuk kemudahan instalasi.
+Output buffer dibersihkan
 
----
+HTTP 500 dikirim
 
-## 💡 TIPS & BEST PRACTICES
+Pengguna diarahkan ke 500.php tanpa menampilkan detail error sensitif
 
-1. **Keamanan:**
-   - Ganti password default
-   - Gunakan HTTPS di production
-   - Backup database berkala
+Lisensi
 
-2. **Performance:**
-   - Optimasi query database
-   - Gunakan index pada kolom sering dicari
-   - Compress gambar sebelum upload
+Project ini bersifat privat untuk kebutuhan internal dan tidak diperbolehkan disalin tanpa izin.
 
-3. **Maintenance:**
-   - Log error ke file
-   - Monitor disk space (folder uploads)
-   - Update library secara berkala
+Kontak
 
-4. **User Experience:**
-   - Tambahkan loading indicator
-   - Validasi form lebih detail
-   - Responsive design testing
-
----
-
-## 📞 SUPPORT
-
-Jika menemui masalah:
-1. Baca dokumentasi README.txt
-2. Cek troubleshooting guide
-3. Hubungi support
-
----
-
-## 📄 LISENSI
-
-MIT License - Free to use and modify
-
----
-
-## ✅ CHECKLIST INSTALASI
-
-- [ ] XAMPP/WAMPP terinstall
-- [ ] MySQL berjalan
-- [ ] Database di-import
-- [ ] Folder project di htdocs
-- [ ] Folder uploads & surat dibuat
-- [ ] Permission 777 diberikan
-- [ ] config.php disesuaikan
-- [ ] Akses http://localhost/project_pengajuan_dokumen/
-- [ ] Login berhasil
-- [ ] Test ajukan dokumen
-- [ ] Test validasi petugas
-- [ ] Test download surat
-
----
-
-**Selamat! Aplikasi siap digunakan! 🎉**
+Jika membutuhkan bantuan atau pengembangan lanjutan, silakan hubungi Developer.
