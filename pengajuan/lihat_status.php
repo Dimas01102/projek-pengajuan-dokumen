@@ -99,25 +99,40 @@ $result_pengajuan = mysqli_query($conn, $query_pengajuan);
 
 <body>
     <div class="dashboard-wrapper">
+        <!-- Sidebar -->
         <div class="sidebar">
             <div class="brand">
                 <i class="fas fa-file-alt"></i> DOKUMEN WARGA
             </div>
             <ul class="nav flex-column mt-3">
                 <li class="nav-item">
-                    <a class="nav-link" href="../dashboard/warga.php">
+                    <a class="nav-link active" href="../dashboard/warga.php">
                         <i class="fas fa-home"></i> Dashboard
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="form_pengajuan.php">
-                        <i class="fas fa-plus-circle"></i> Ajukan Dokumen
+                <li class="nav-item dropdown-menu-item">
+                    <a class="nav-link dropdown-toggle" href="#"
+                        id="pengajuanDropdown"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#pengajuanSubmenu">
+
+                        <i class="fas fa-file-alt"></i> Pengajuan
+                        <i class="fas fa-chevron-down dropdown-arrow"></i>
                     </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link active" href="lihat_status.php">
-                        <i class="fas fa-list"></i> Status Pengajuan
-                    </a>
+                    <div class="collapse submenu" id="pengajuanSubmenu">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link submenu-link" href="../pengajuan/form_pengajuan.php">
+                                    <i class="fas fa-plus-circle"></i> Ajukan Dokumen
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link submenu-link" href="../pengajuan/lihat_status.php">
+                                    <i class="fas fa-list"></i> Status Pengajuan
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
                 <li class="nav-item mt-3">
                     <a class="nav-link" href="?logout=true">
@@ -342,6 +357,27 @@ $result_pengajuan = mysqli_query($conn, $query_pengajuan);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const submenu = document.getElementById('pengajuanSubmenu');
+            const toggle = document.getElementById('pengajuanDropdown');
+
+            // Saat halaman dibuka, cek status terakhir
+            if (localStorage.getItem('pengajuan_open') === 'true') {
+                submenu.classList.add('show');
+            }
+
+            // Saat dropdown dibuka
+            submenu.addEventListener('shown.bs.collapse', function() {
+                localStorage.setItem('pengajuan_open', 'true');
+            });
+
+            // Saat dropdown ditutup
+            submenu.addEventListener('hidden.bs.collapse', function() {
+                localStorage.setItem('pengajuan_open', 'false');
+            });
+        });
+
+
         <?php if (isset($_GET['logout'])): ?>
             Swal.fire({
                 title: 'Logout?',

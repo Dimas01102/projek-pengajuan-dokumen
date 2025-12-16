@@ -28,25 +28,40 @@ $result_jenis = mysqli_query($conn, $query_jenis);
 
 <body>
     <div class="dashboard-wrapper">
+        <!-- Sidebar -->
         <div class="sidebar">
             <div class="brand">
                 <i class="fas fa-file-alt"></i> DOKUMEN WARGA
             </div>
             <ul class="nav flex-column mt-3">
                 <li class="nav-item">
-                    <a class="nav-link" href="../dashboard/warga.php">
+                    <a class="nav-link active" href="../dashboard/warga.php">
                         <i class="fas fa-home"></i> Dashboard
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link active" href="form_pengajuan.php">
-                        <i class="fas fa-plus-circle"></i> Ajukan Dokumen
+                <li class="nav-item dropdown-menu-item">
+                    <a class="nav-link dropdown-toggle" href="#"
+                        id="pengajuanDropdown"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#pengajuanSubmenu">
+
+                        <i class="fas fa-file-alt"></i> Pengajuan
+                        <i class="fas fa-chevron-down dropdown-arrow"></i>
                     </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="lihat_status.php">
-                        <i class="fas fa-list"></i> Status Pengajuan
-                    </a>
+                    <div class="collapse submenu" id="pengajuanSubmenu">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link submenu-link" href="../pengajuan/form_pengajuan.php">
+                                    <i class="fas fa-plus-circle"></i> Ajukan Dokumen
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link submenu-link" href="../pengajuan/lihat_status.php">
+                                    <i class="fas fa-list"></i> Status Pengajuan
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
                 <li class="nav-item mt-3">
                     <a class="nav-link" href="?logout=true">
@@ -79,9 +94,9 @@ $result_jenis = mysqli_query($conn, $query_jenis);
                                         <select name="id_jenis" id="jenis_dokumen" class="form-select" required>
                                             <option value="">-- Pilih Jenis Dokumen --</option>
                                             <?php while ($jenis = mysqli_fetch_assoc($result_jenis)): ?>
-                                                <option value="<?= $jenis['id_jenis'] ?>" 
-                                                        data-nama="<?= $jenis['nama_dokumen'] ?>" 
-                                                        data-deskripsi="<?= htmlspecialchars($jenis['deskripsi']) ?>">
+                                                <option value="<?= $jenis['id_jenis'] ?>"
+                                                    data-nama="<?= $jenis['nama_dokumen'] ?>"
+                                                    data-deskripsi="<?= htmlspecialchars($jenis['deskripsi']) ?>">
                                                     <?= $jenis['nama_dokumen'] ?>
                                                 </option>
                                             <?php endwhile; ?>
@@ -119,6 +134,25 @@ $result_jenis = mysqli_query($conn, $query_jenis);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const submenu = document.getElementById('pengajuanSubmenu');
+            const toggle = document.getElementById('pengajuanDropdown');
+
+            // Saat halaman dibuka, cek status terakhir
+            if (localStorage.getItem('pengajuan_open') === 'true') {
+                submenu.classList.add('show');
+            }
+
+            // Saat dropdown dibuka
+            submenu.addEventListener('shown.bs.collapse', function() {
+                localStorage.setItem('pengajuan_open', 'true');
+            });
+
+            // Saat dropdown ditutup
+            submenu.addEventListener('hidden.bs.collapse', function() {
+                localStorage.setItem('pengajuan_open', 'false');
+            });
+        });
         let uploadConfig = null;
 
         // Handle perubahan jenis dokumen - DYNAMIC FIELDS & UPLOADS
@@ -133,7 +167,7 @@ $result_jenis = mysqli_query($conn, $query_jenis);
 
             if (deskripsiGabungan) {
                 const decoded = decodeConfig(deskripsiGabungan);
-                
+
                 // Render form fields
                 if (decoded.field_config && decoded.field_config.length > 0) {
                     let html = '<div class="alert alert-info"><strong><i class="fas fa-edit"></i> Field Tambahan</strong></div>';
@@ -306,7 +340,10 @@ $result_jenis = mysqli_query($conn, $query_jenis);
                         if (Array.isArray(config)) {
                             return {
                                 field_config: config,
-                                upload_config: {jumlah: 1, labels: ['Dokumen Pendukung']}
+                                upload_config: {
+                                    jumlah: 1,
+                                    labels: ['Dokumen Pendukung']
+                                }
                             };
                         }
                         return config;
@@ -317,7 +354,10 @@ $result_jenis = mysqli_query($conn, $query_jenis);
             }
             return {
                 field_config: [],
-                upload_config: {jumlah: 1, labels: ['Dokumen Pendukung']}
+                upload_config: {
+                    jumlah: 1,
+                    labels: ['Dokumen Pendukung']
+                }
             };
         }
 

@@ -679,7 +679,7 @@ require_once '../handler/admin_handler.php';
                         <!-- KONFIGURASI FILE UPLOAD -->
                         <div class="card mb-3 border-info">
                             <div class="card-header bg-info text-white">
-                                <h6 class="mb-0"><i class="fas fa-file-upload"></i> Konfigurasi Upload Dokumen</h6>
+                                <h6 class="mb-0"><i class="fas fa-file-upload"></i> Upload Dokumen</h6>
                             </div>
                             <div class="card-body">
                                 <div class="row">
@@ -709,7 +709,7 @@ require_once '../handler/admin_handler.php';
                         <hr>
 
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="mb-0"><i class="fas fa-sliders-h"></i> Konfigurasi Field Input Form</h6>
+                            <h6 class="mb-0"><i class="fas fa-sliders-h"></i> Field Input Form</h6>
                             <button type="button" class="btn btn-sm btn-success" onclick="addFieldRow()">
                                 <i class="fas fa-plus"></i> Tambah Field
                             </button>
@@ -822,13 +822,13 @@ require_once '../handler/admin_handler.php';
             Swal.fire({
                 title: 'Detail Warga',
                 html: `<table class="table text-start">
-                <tr><td><strong>Username</strong></td><td>${data.username}</td></tr>
-                <tr><td><strong>Nama Lengkap</strong></td><td>${data.nama_lengkap}</td></tr>
-                <tr><td><strong>NIK</strong></td><td>${data.nik || '-'}</td></tr>
-                <tr><td><strong>Email</strong></td><td>${data.email || '-'}</td></tr>
-                <tr><td><strong>No. HP</strong></td><td>${data.no_hp || '-'}</td></tr>
-                <tr><td><strong>Tanggal Daftar</strong></td><td>${data.tanggal_daftar}</td></tr>
-            </table>`,
+        <tr><td><strong>Username</strong></td><td>${data.username}</td></tr>
+        <tr><td><strong>Nama Lengkap</strong></td><td>${data.nama_lengkap}</td></tr>
+        <tr><td><strong>NIK</strong></td><td>${data.nik || '-'}</td></tr>
+        <tr><td><strong>Email</strong></td><td>${data.email || '-'}</td></tr>
+        <tr><td><strong>No. HP</strong></td><td>${data.no_hp || '-'}</td></tr>
+        <tr><td><strong>Tanggal Daftar</strong></td><td>${data.tanggal_daftar}</td></tr>
+    </table>`,
                 width: 600,
                 showCloseButton: true
             });
@@ -849,7 +849,6 @@ require_once '../handler/admin_handler.php';
 
         let fieldCounter = 0;
 
-
         // Fungsi untuk update upload fields berdasarkan jumlah yang dipilih
         function updateUploadFields() {
             const jumlah = parseInt(document.getElementById('jumlah_upload').value);
@@ -858,17 +857,17 @@ require_once '../handler/admin_handler.php';
             let html = '<div class="row mt-3">';
             for (let i = 1; i <= jumlah; i++) {
                 html += `
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Label untuk Upload ${i} *</label>
-                <input type="text" 
-                       name="upload_labels[]" 
-                       id="upload_label_${i}"
-                       class="form-control form-control-sm" 
-                       placeholder="Contoh: KTP, KK, Surat Pengantar RT"
-                       required>
-                <small class="text-muted">Label ini akan ditampilkan di form warga</small>
-            </div>
-        `;
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Label untuk Upload ${i} *</label>
+        <input type="text" 
+               name="upload_labels[]" 
+               id="upload_label_${i}"
+               class="form-control form-control-sm" 
+               placeholder="Contoh: KTP, KK, Surat Pengantar RT"
+               required>
+        <small class="text-muted">Label ini akan ditampilkan di form warga</small>
+    </div>
+`;
             }
             html += '</div>';
 
@@ -894,7 +893,7 @@ require_once '../handler/admin_handler.php';
             new bootstrap.Modal(document.getElementById('jenisModal')).show();
         }
 
-        // Edit jenis dokumen 
+        // Edit jenis dokumen
         function editJenis(data) {
             document.getElementById('jenisModalTitle').textContent = 'Edit Jenis Dokumen';
             document.getElementById('jenis_id').value = data.id;
@@ -910,13 +909,15 @@ require_once '../handler/admin_handler.php';
             document.getElementById('jumlah_upload').value = uploadConfig.jumlah;
             updateUploadFields();
 
-            // Populate upload labels
-            uploadConfig.labels.forEach((label, index) => {
-                const labelInput = document.getElementById('upload_label_' + (index + 1));
-                if (labelInput) {
-                    labelInput.value = label;
-                }
-            });
+            // ✅ FIX: Gunakan setTimeout untuk ensure fields sudah ter-render
+            setTimeout(() => {
+                uploadConfig.labels.forEach((label, index) => {
+                    const labelInput = document.getElementById('upload_label_' + (index + 1));
+                    if (labelInput) {
+                        labelInput.value = label;
+                    }
+                });
+            }, 100);
 
             // Populate field config
             document.getElementById('fieldContainer').innerHTML = '';
@@ -937,55 +938,55 @@ require_once '../handler/admin_handler.php';
             const container = document.getElementById('fieldContainer');
 
             const fieldHtml = `
-        <div class="field-row" id="field_${fieldCounter}" style="background: #f8f9fa; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid #007bff;">
-            <div class="row align-items-center">
-                <div class="col-md-3">
-                    <label class="form-label small">Label Field *</label>
-                    <input type="text" name="field_labels[]" class="form-control form-control-sm" 
-                           value="${fieldData ? fieldData.label : ''}" 
-                           placeholder="Contoh: Nama Lengkap" required>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small">Tipe Input *</label>
-                    <select name="field_types[]" class="form-select form-select-sm" 
-                            onchange="handleFieldTypeChange(this, ${fieldCounter})" required>
-                        <option value="text" ${fieldData && fieldData.type === 'text' ? 'selected' : ''}>Text</option>
-                        <option value="textarea" ${fieldData && fieldData.type === 'textarea' ? 'selected' : ''}>Textarea</option>
-                        <option value="number" ${fieldData && fieldData.type === 'number' ? 'selected' : ''}>Number</option>
-                        <option value="date" ${fieldData && fieldData.type === 'date' ? 'selected' : ''}>Date</option>
-                        <option value="email" ${fieldData && fieldData.type === 'email' ? 'selected' : ''}>Email</option>
-                        <option value="tel" ${fieldData && fieldData.type === 'tel' ? 'selected' : ''}>Telepon</option>
-                        <option value="select" ${fieldData && fieldData.type === 'select' ? 'selected' : ''}>Select</option>
-                        <option value="radio" ${fieldData && fieldData.type === 'radio' ? 'selected' : ''}>Radio</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small">Placeholder</label>
-                    <input type="text" name="field_placeholders[]" class="form-control form-control-sm" 
-                           value="${fieldData ? fieldData.placeholder : ''}" placeholder="Petunjuk">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small">Options (koma)</label>
-                    <input type="text" name="field_options[]" 
-                           class="form-control form-control-sm options-field-${fieldCounter}" 
-                           value="${fieldData && fieldData.options ? fieldData.options.join(', ') : ''}" 
-                           placeholder="A, B, C"
-                           style="display: ${fieldData && (fieldData.type === 'select' || fieldData.type === 'radio') ? 'block' : 'none'}">
-                </div>
-                <div class="col-md-1 text-center">
-                    <label class="form-label small d-block">Wajib?</label>
-                    <input type="checkbox" name="field_required[]" class="form-check-input" 
-                           ${fieldData && fieldData.required ? 'checked' : ''}>
-                </div>
-                <div class="col-md-1 text-center">
-                    <label class="form-label small d-block">&nbsp;</label>
-                    <button type="button" class="btn btn-sm btn-danger" onclick="removeFieldRow(${fieldCounter})">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
+<div class="field-row" id="field_${fieldCounter}" style="background: #f8f9fa; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid #007bff;">
+    <div class="row align-items-center">
+        <div class="col-md-3">
+            <label class="form-label small">Label Field *</label>
+            <input type="text" name="field_labels[]" class="form-control form-control-sm" 
+                   value="${fieldData ? fieldData.label : ''}" 
+                   placeholder="Contoh: Nama Lengkap" required>
         </div>
-    `;
+        <div class="col-md-2">
+            <label class="form-label small">Tipe Input *</label>
+            <select name="field_types[]" class="form-select form-select-sm" 
+                    onchange="handleFieldTypeChange(this, ${fieldCounter})" required>
+                <option value="text" ${fieldData && fieldData.type === 'text' ? 'selected' : ''}>Text</option>
+                <option value="textarea" ${fieldData && fieldData.type === 'textarea' ? 'selected' : ''}>Textarea</option>
+                <option value="number" ${fieldData && fieldData.type === 'number' ? 'selected' : ''}>Number</option>
+                <option value="date" ${fieldData && fieldData.type === 'date' ? 'selected' : ''}>Date</option>
+                <option value="email" ${fieldData && fieldData.type === 'email' ? 'selected' : ''}>Email</option>
+                <option value="tel" ${fieldData && fieldData.type === 'tel' ? 'selected' : ''}>Telepon</option>
+                <option value="select" ${fieldData && fieldData.type === 'select' ? 'selected' : ''}>Select</option>
+                <option value="radio" ${fieldData && fieldData.type === 'radio' ? 'selected' : ''}>Radio</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small">Placeholder</label>
+            <input type="text" name="field_placeholders[]" class="form-control form-control-sm" 
+                   value="${fieldData ? fieldData.placeholder : ''}" placeholder="Petunjuk">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small">Options (koma)</label>
+            <input type="text" name="field_options[]" 
+                   class="form-control form-control-sm options-field-${fieldCounter}" 
+                   value="${fieldData && fieldData.options ? fieldData.options.join(', ') : ''}" 
+                   placeholder="A, B, C"
+                   style="display: ${fieldData && (fieldData.type === 'select' || fieldData.type === 'radio') ? 'block' : 'none'}">
+        </div>
+        <div class="col-md-1 text-center">
+            <label class="form-label small d-block">Wajib?</label>
+            <input type="checkbox" name="field_required[]" class="form-check-input" 
+                   ${fieldData && fieldData.required ? 'checked' : ''}>
+        </div>
+        <div class="col-md-1 text-center">
+            <label class="form-label small d-block">&nbsp;</label>
+            <button type="button" class="btn btn-sm btn-danger" onclick="removeFieldRow(${fieldCounter})">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </div>
+</div>
+`;
 
             container.insertAdjacentHTML('beforeend', fieldHtml);
         }
@@ -1004,31 +1005,6 @@ require_once '../handler/admin_handler.php';
                 optionsField.style.display = 'none';
                 optionsField.value = '';
             }
-        }
-
-        // Initialize saat halaman load
-        document.addEventListener('DOMContentLoaded', function() {
-            updateUploadFields();
-        });
-
-        // Edit jenis dokumen
-        function editJenis(data) {
-            document.getElementById('jenisModalTitle').textContent = 'Edit Jenis Dokumen';
-            document.getElementById('jenis_id').value = data.id;
-            document.getElementById('jenis_nama').value = data.nama;
-            document.getElementById('jenis_deskripsi').value = data.data.deskripsi || '';
-            document.getElementById('btnSubmitJenis').name = 'edit_jenis';
-
-            document.getElementById('fieldContainer').innerHTML = '';
-            fieldCounter = 0;
-
-            if (data.data.field_config && data.data.field_config.length > 0) {
-                data.data.field_config.forEach(field => addFieldRow(field));
-            } else {
-                addFieldRow();
-            }
-
-            new bootstrap.Modal(document.getElementById('jenisModal')).show();
         }
 
         // Toggle status jenis dokumen
@@ -1070,7 +1046,7 @@ require_once '../handler/admin_handler.php';
                 confirmButtonText: 'Ya, Hapus!',
                 cancelButtonText: 'Batal'
             }).then((result) => {
-                if (result.isConfirmzed) {
+                if (result.isConfirmed) {
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.innerHTML = '<input type="hidden" name="id_jenis" value="' + id + '"><input type="hidden" name="delete_jenis" value="1">';
@@ -1079,6 +1055,11 @@ require_once '../handler/admin_handler.php';
                 }
             });
         }
+
+        // Initialize saat halaman load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUploadFields();
+        });
 
         // Logout Confirmation
         <?php if (isset($_GET['logout'])): ?>
