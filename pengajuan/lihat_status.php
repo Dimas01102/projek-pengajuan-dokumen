@@ -377,7 +377,6 @@ $result_pengajuan = mysqli_query($conn, $query_pengajuan);
             });
         });
 
-
         <?php if (isset($_GET['logout'])): ?>
             Swal.fire({
                 title: 'Logout?',

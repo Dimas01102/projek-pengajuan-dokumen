@@ -1,6 +1,29 @@
 <?php
 // Konfigurasi Database dan Session
-// Mulai session jika belum
+
+// Production mode (sembunyikan error PHP)
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+error_reporting(E_ALL);
+
+// Tangkap semua exception
+set_exception_handler(function ($e) {
+    http_response_code(500);
+    require __DIR__ . '/../500.php';
+    exit;
+});
+
+// Tangkap fatal error (shutdown)
+register_shutdown_function(function () {
+    $error = error_get_last();
+    if ($error !== null) {
+        http_response_code(500);
+        require __DIR__ . '/../500.php';
+        exit;
+    }
+});
+
+// Mulai session
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -16,7 +39,7 @@ $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 // Cek koneksi
 if (!$conn) {
-    die("Koneksi database gagal: " . mysqli_connect_error());
+    throw new Exception("Koneksi database gagal");
 }
 
 // Set charset UTF-8

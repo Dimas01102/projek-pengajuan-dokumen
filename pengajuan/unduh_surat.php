@@ -1,5 +1,5 @@
 <?php
-// Set timezone Indonesia di awal file
+// Set timezone Indonesia
 date_default_timezone_set('Asia/Jakarta');
 
 require_once '../includes/config.php';
@@ -15,7 +15,7 @@ if (!isset($_GET['id'])) redirect('lihat_status.php');
 $id_pengajuan = clean_input($_GET['id']);
 $user_id = $_SESSION['user_id'];
 
-// Query untuk ambil data 
+// Query untuk ambil data dari database
 $query = "SELECT p.*, j.nama_dokumen, j.deskripsi as deskripsi_jenis, 
           u.nama_lengkap, u.nik, u.alamat, s.nomor_surat, s.file_path
           FROM t_pengajuan p
@@ -112,7 +112,7 @@ if (isset($_GET['download']) && $_GET['download'] == 'pdf') {
         
         $start_y = 20; // Posisi Y dari atas
         $logo_size = 22; // Ukuran 22mm agar sesuai preview 85px
-        $logo_x = 18; // GESER KE KIRI dari 22mm jadi 18mm
+        $logo_x = 18; // Geser ke kiri dari 22mm jadi 18mm
         
         if ($logo_converted && file_exists($logo_converted)) {
             try {
@@ -274,18 +274,18 @@ if (isset($_GET['download']) && $_GET['download'] == 'pdf') {
             $page_width = $pdf->getPageWidth();
             $page_height = $pdf->getPageHeight();
             
-            // Hitung center yang konsisten untuk semua halaman
+            // Hitung center untuk semua halaman
             $x_center = $page_width / 2;
             $y_center = $page_height / 2;
             
-            // Hitung lebar text untuk centering yang tepat
+            // Hitung lebar text untuk centering 
             $text = 'DOKUMEN RESMI';
             $text_width = $pdf->GetStringWidth($text);
             
             $pdf->StartTransform();
             // Rotate dari center halaman
             $pdf->Rotate(45, $x_center, $y_center);
-            // Posisi X dikurangi setengah lebar text agar benar-benar center
+            // Posisi X dikurangi setengah lebar text 
             $pdf->Text($x_center - ($text_width / 2), $y_center, $text);
             $pdf->StopTransform();
             

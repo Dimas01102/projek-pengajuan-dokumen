@@ -1,6 +1,5 @@
 <?php
-/* ========================================
-   FILE: generate_hash.php
+/* ======================================= 
    TARUH DI ROOT PROJECT (sejajar dengan index.php)
    
    CARA PAKAI:
@@ -18,11 +17,13 @@ $hash = password_hash($password, PASSWORD_DEFAULT);
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <title>Password Hash Generator</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body class="bg-light">
     <div class="container mt-5">
         <div class="row justify-content-center">
@@ -47,7 +48,7 @@ $hash = password_hash($password, PASSWORD_DEFAULT);
                         <div class="alert alert-warning">
                             Copy query di bawah ini dan jalankan di phpMyAdmin:
                         </div>
-                        
+
                         <pre class="bg-dark text-white p-3 rounded"><code>-- Update semua user dengan password baru
 UPDATE t_pengguna SET password = '<?= $hash ?>' WHERE username = 'admin';
 UPDATE t_pengguna SET password = '<?= $hash ?>' WHERE username = 'petugas1';
@@ -109,11 +110,11 @@ UPDATE t_pengguna SET password = '<?= $hash ?>';</code></pre>
                                 <?php
                                 // Cek koneksi database
                                 $conn = @mysqli_connect('localhost', 'root', '', 'db_pengajuan_dokumen');
-                                
+
                                 if ($conn) {
                                     $query = "SELECT username, role, status FROM t_pengguna WHERE role IN ('admin', 'petugas') ORDER BY role, username";
                                     $result = mysqli_query($conn, $query);
-                                    
+
                                     while ($user = mysqli_fetch_assoc($result)) {
                                         echo "<tr>";
                                         echo "<td><span class='badge bg-info'>" . ucfirst($user['role']) . "</span></td>";
@@ -134,4 +135,5 @@ UPDATE t_pengguna SET password = '<?= $hash ?>';</code></pre>
         </div>
     </div>
 </body>
+
 </html>

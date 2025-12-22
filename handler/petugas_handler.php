@@ -30,7 +30,7 @@ if (isset($_POST['update_status'])) {
                          VALUES ('$id_pengajuan', '$id_status', '$catatan', '$user_id')";
         mysqli_query($conn, $riwayat_query);
 
-        // Jika disetujui, buat surat
+        // Jika disetujui, maka surat akan di generate
         if ($id_status == 2) {
             $pengajuan_query = "SELECT p.*, j.nama_dokumen FROM t_pengajuan p
                                JOIN t_jenis_dokumen j ON p.id_jenis = j.id_jenis

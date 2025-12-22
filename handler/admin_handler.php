@@ -131,8 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Nonaktifkan foreign key checks sementara
         mysqli_query($conn, "SET FOREIGN_KEY_CHECKS=0");
 
-        // Hapus data terkait terlebih dahulu
-        // 1. Hapus berkas dokumen terkait pengajuan warga
+        // Hapus berkas dokumen terkait pengajuan warga
         $berkas_query = mysqli_query($conn, "SELECT b.path_file FROM t_berkas_dokumen b 
                                             JOIN t_pengajuan p ON b.id_pengajuan = p.id_pengajuan 
                                             WHERE p.id_pengguna = '$id'");
@@ -144,14 +143,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // 2. Hapus berkas dokumen dari database
+        // Hapus berkas dokumen dari database
         mysqli_query($conn, "DELETE FROM t_berkas_dokumen WHERE id_pengajuan IN 
                             (SELECT id_pengajuan FROM t_pengajuan WHERE id_pengguna = '$id')");
 
-        // 3. Hapus pengajuan warga
+        // Hapus pengajuan warga
         mysqli_query($conn, "DELETE FROM t_pengajuan WHERE id_pengguna = '$id'");
 
-        // 4. Hapus data warga
+        // Hapus data warga
         if (mysqli_query($conn, "DELETE FROM t_pengguna WHERE id_pengguna = '$id' AND role = 'warga'")) {
             $message = 'Warga dan semua data terkait berhasil dihapus';
         } else {
@@ -164,8 +163,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // ============ JENIS DOKUMEN HANDLERS ============
-
-    // ============ JENIS DOKUMEN HANDLERS - UPDATED ============
 
     if (isset($_POST['add_jenis'])) {
         $section = 'jenis-dokumen';
