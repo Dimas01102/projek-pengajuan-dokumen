@@ -162,4 +162,8 @@ Project ini bersifat privat untuk kebutuhan internal dan tidak diperbolehkan dis
 
 Kontak
 
+<<<<<<< HEAD
 Jika membutuhkan bantuan atau pengembangan lanjutan, silakan hubungi Developer.
+=======
+Jika membutuhkan bantuan atau pengembangan lanjutan, silakan hubungi Developer.
+>>>>>>> 761669660b53aa530762663c51a081313bf7bb6c
