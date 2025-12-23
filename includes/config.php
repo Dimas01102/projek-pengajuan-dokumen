@@ -36,7 +36,7 @@ function loadEnv($path) {
     return true;
 }
 
-// Load .env file (jika ada)
+// Load .env file
 $envPath = __DIR__ . '/.env';
 loadEnv($envPath);
 
@@ -59,13 +59,20 @@ if (DEBUG_MODE) {
     ini_set('log_errors', 1);
     error_reporting(E_ALL);
     
-    // Tampilkan error di browser untuk debugging
+    
     set_error_handler(function($errno, $errstr, $errfile, $errline) {
-        echo "<div style='background:#f8d7da;border:1px solid #f5c6cb;padding:10px;margin:10px;border-radius:5px;'>";
-        echo "<strong>Error [$errno]:</strong> $errstr<br>";
-        echo "<strong>File:</strong> $errfile<br>";
-        echo "<strong>Line:</strong> $errline";
-        echo "</div>";
+        // Log ke error log
+        error_log("Error [$errno]: $errstr in $errfile on line $errline");
+        
+        // Hanya tampilkan jika bukan request AJAX atau PDF
+        if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+            !isset($_GET['download'])) {
+            echo "<div style='background:#f8d7da;border:1px solid #f5c6cb;padding:10px;margin:10px;border-radius:5px;'>";
+            echo "<strong>Error [$errno]:</strong> $errstr<br>";
+            echo "<strong>File:</strong> $errfile<br>";
+            echo "<strong>Line:</strong> $errline";
+            echo "</div>";
+        }
         return true;
     });
     
@@ -264,7 +271,11 @@ function validate_csrf_token($token) {
 // ============================================
 // DISPLAY CURRENT MODE (Development only)
 // ============================================
-if (DEBUG_MODE) {
-    echo "<!-- Running in " . strtoupper(APP_ENV) . " mode -->\n";
+if (DEBUG_MODE && !isset($_GET['download'])) {
+    error_log("Running in " . strtoupper(APP_ENV) . " mode");
+    // Hanya output HTML comment jika bukan PDF download
+    if (!isset($_SERVER['HTTP_X_REQUESTED_WITH'])) {
+        echo "<!-- Running in " . strtoupper(APP_ENV) . " mode -->\n";
+    }
 }
 ?>

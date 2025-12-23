@@ -2,6 +2,15 @@
 // Set timezone Indonesia
 date_default_timezone_set('Asia/Jakarta');
 
+if (isset($_GET['download']) && $_GET['download'] == 'pdf') {
+    // Matikan semua output
+    ini_set('display_errors', 0);
+    error_reporting(0);
+    
+    // Mulai output buffering
+    ob_start();
+}
+
 require_once '../includes/config.php';
 require_once '../includes/auth.php';
 require_once '../includes/functions.php';

@@ -1,0 +1,6 @@
+[24-Dec-2025 00:00:32 Asia/Jakarta] PHP Warning:  Undefined variable $nama_dokumen_clean in C:\xampp\htdocs\project_pengajuan_dokumen\pengajuan\generate_pdf.php on line 84
+[24-Dec-2025 00:00:32 Asia/Jakarta] PHP Warning:  Undefined variable $nama_pemohon_clean in C:\xampp\htdocs\project_pengajuan_dokumen\pengajuan\generate_pdf.php on line 84
+[24-Dec-2025 00:00:32 Asia/Jakarta] PHP Warning:  Undefined variable $nomor_surat in C:\xampp\htdocs\project_pengajuan_dokumen\pengajuan\generate_pdf.php on line 84
+[24-Dec-2025 00:00:37 Asia/Jakarta] PHP Warning:  Undefined variable $nama_dokumen_clean in C:\xampp\htdocs\project_pengajuan_dokumen\pengajuan\generate_pdf.php on line 84
+[24-Dec-2025 00:00:37 Asia/Jakarta] PHP Warning:  Undefined variable $nama_pemohon_clean in C:\xampp\htdocs\project_pengajuan_dokumen\pengajuan\generate_pdf.php on line 84
+[24-Dec-2025 00:00:37 Asia/Jakarta] PHP Warning:  Undefined variable $nomor_surat in C:\xampp\htdocs\project_pengajuan_dokumen\pengajuan\generate_pdf.php on line 84
