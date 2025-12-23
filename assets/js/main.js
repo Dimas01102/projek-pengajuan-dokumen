@@ -25,6 +25,25 @@ function confirmDelete(message) {
 }
 
 /**
+ * Konfirmasi Logout
+ * @param {string} message - Pesan konfirmasi (default: 'Anda yakin ingin keluar?')
+ * @returns {Promise} - SweetAlert2 promise
+ */
+function confirmLogout(message = 'Anda yakin ingin keluar?') {
+    return Swal.fire({
+        title: 'Konfirmasi Logout',
+        text: message,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, Logout!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+    });
+}
+
+/**
  * Tampilkan loading indicator
  * @param {string} message - Pesan loading (default: "Memproses...")
  */
@@ -239,7 +258,7 @@ function formatTanggalIndonesia(dateString) {
 // ============================================
 
 /**
- * Tampilkan modal detail pengajuan dengan MULTI-FILE SUPPORT
+ * Tampilkan modal detail pengajuan dengan MULTI-FILE SUPPORT + PREVIEW
  * @param {object} data - Data pengajuan
  */
 function viewDetail(data) {
@@ -263,12 +282,12 @@ function viewDetail(data) {
 
   // Deteksi apakah berada di folder 'pages' atau 'dashboard'
   if (currentPath.includes("/pages/")) {
-    apiPath = "../includes/get_berkas.php";
+    apiPath = "../api/get_berkas.php";
   } else if (currentPath.includes("/dashboard/")) {
-    apiPath = "../includes/get_berkas.php";
+    apiPath = "../api/get_berkas.php";
   } else {
     // Fallback: gunakan path relatif
-    apiPath = "../includes/get_berkas.php";
+    apiPath = "../api/get_berkas.php";
   }
 
   const apiUrl = `${apiPath}?id_pengajuan=${data.id_pengajuan}`;
@@ -313,184 +332,172 @@ function viewDetail(data) {
         console.log("Total files found:", totalFiles);
 
         if (totalFiles === 1) {
-          // Single file display
+          // ========== SINGLE FILE ==========
           const b = berkasList[0];
           const fileExt = (b.tipe_file || "pdf").toLowerCase();
-
-          // Gunakan label yang sudah di-parse dari API (TANPA |||)
           const displayLabel = b.label || "Dokumen Pendukung";
           const displayFilename = b.filename_only || b.nama_file || "file.pdf";
 
           berkasHTML = `
-                        <div class="alert alert-info mb-0">
-                            <div class="d-flex align-items-start mb-2">
-                                <i class="fas fa-file-pdf text-danger me-2" style="font-size: 2rem;"></i>
-                                <div class="flex-grow-1">
-                                    <strong>${displayLabel}</strong><br>
-                                    <small class="text-muted">${displayFilename}</small><br>
-                                    <small>Ukuran: ${formatFileSize(
-                                      parseInt(b.ukuran_file)
-                                    )} | Tipe: ${fileExt.toUpperCase()}</small>
-                                </div>
-                            </div>
-                            <div class="mt-2">
-                                <a href="../uploads/${
-                                  b.path_file
-                                }" target="_blank" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-download"></i> Download Berkas
-                                </a>
-                                ${
-                                  ["pdf", "jpg", "jpeg", "png"].includes(
-                                    fileExt
-                                  )
-                                    ? `<button onclick="previewFile('../uploads/${b.path_file}', '${fileExt}')" class="btn btn-sm btn-success">
-                                        <i class="fas fa-eye"></i> Preview
-                                    </button>`
-                                    : ""
-                                }
-                            </div>
-                        </div>
-                    `;
+            <div class="card border-primary">
+              <div class="card-body text-center py-4">
+                <!-- Icon PDF -->
+                <div class="mb-3">
+                  <i class="fas fa-file-pdf text-danger" style="font-size: 3rem;"></i>
+                </div>
+                
+                <!-- Badge Label -->
+                <div class="mb-2">
+                  <span class="badge bg-info px-3 py-2">
+                    <i class="fas fa-tag"></i> ${displayLabel}
+                  </span>
+                </div>
+                
+                <!-- Nama File -->
+                <h6 class="mb-2">${displayFilename}</h6>
+                
+                <!-- Info Size & Type -->
+                <small class="text-muted d-block mb-3">
+                  <i class="fas fa-hdd"></i> ${formatFileSize(parseInt(b.ukuran_file))} | 
+                  <i class="fas fa-file-alt"></i> ${fileExt.toUpperCase()}
+                </small>
+                
+                <!-- Buttons -->
+                <div>
+                  <a href="../uploads/${b.path_file}" target="_blank" class="btn btn-primary">
+                    <i class="fas fa-download"></i> Download
+                  </a>
+                  ${
+                    ["pdf", "jpg", "jpeg", "png"].includes(fileExt)
+                      ? `<button onclick="previewFile('../uploads/${b.path_file}', '${fileExt}')" class="btn btn-success ms-2">
+                          <i class="fas fa-eye"></i> Preview
+                        </button>`
+                      : ""
+                  }
+                </div>
+              </div>
+            </div>
+          `;
         } else {
-          // Multiple files - Carousel display
+          // ========== MULTIPLE FILES - CAROUSEL ==========
           let carouselItems = "";
 
           berkasList.forEach((b, index) => {
             const fileExt = (b.tipe_file || "pdf").toLowerCase();
-
-            // Gunakan label yang sudah di-parse dari API (TANPA |||)
             const displayLabel = b.label || "Dokumen Pendukung";
-            const displayFilename =
-              b.filename_only || b.nama_file || "file.pdf";
+            const displayFilename = b.filename_only || b.nama_file || "file.pdf";
 
             carouselItems += `
-                            <div class="carousel-item ${
-                              index === 0 ? "active" : ""
-                            }">
-                                <div class="card border-primary">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-start mb-3">
-                                            <i class="fas fa-file-pdf text-danger me-3" style="font-size: 3rem;"></i>
-                                            <div class="flex-grow-1">
-                                                <div class="badge bg-info mb-2">
-                                                    <i class="fas fa-tag"></i> ${displayLabel}
-                                                </div>
-                                                <h6 class="mb-1">${displayFilename}</h6>
-                                                <small class="text-muted">
-                                                    <i class="fas fa-hdd"></i> ${formatFileSize(
-                                                      parseInt(b.ukuran_file)
-                                                    )} | 
-                                                    <i class="fas fa-file-alt"></i> ${fileExt.toUpperCase()}
-                                                </small>
-                                            </div>
-                                        </div>
-                                        <div class="text-center">
-                                            <span class="badge bg-secondary">File ${
-                                              index + 1
-                                            } dari ${totalFiles}</span>
-                                        </div>
-                                        <div class="mt-3 text-center">
-                                            <a href="../uploads/${
-                                              b.path_file
-                                            }" target="_blank" class="btn btn-primary">
-                                                <i class="fas fa-download"></i> Download File Ini
-                                            </a>
-                                            ${
-                                              [
-                                                "pdf",
-                                                "jpg",
-                                                "jpeg",
-                                                "png",
-                                              ].includes(fileExt)
-                                                ? `<button onclick="previewFile('../uploads/${b.path_file}', '${fileExt}')" class="btn btn-success">
-                                                    <i class="fas fa-eye"></i> Preview
-                                                </button>`
-                                                : ""
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+              <div class="carousel-item ${index === 0 ? "active" : ""}">
+                <div class="card border-primary">
+                  <div class="card-body text-center py-4">
+                    <!-- Icon PDF -->
+                    <div class="mb-3">
+                      <i class="fas fa-file-pdf text-danger" style="font-size: 3rem;"></i>
+                    </div>
+                    
+                    <!-- Badge Label -->
+                    <div class="mb-2">
+                      <span class="badge bg-info px-3 py-2">
+                        <i class="fas fa-tag"></i> ${displayLabel}
+                      </span>
+                    </div>
+                    
+                    <!-- Nama File -->
+                    <h6 class="mb-2">${displayFilename}</h6>
+                    
+                    <!-- Info Size & Type -->
+                    <small class="text-muted d-block mb-3">
+                      <i class="fas fa-hdd"></i> ${formatFileSize(parseInt(b.ukuran_file))} | 
+                      <i class="fas fa-file-alt"></i> ${fileExt.toUpperCase()}
+                    </small>
+                    
+                    <!-- Badge Counter -->
+                    <div class="mb-3">
+                      <span class="badge bg-secondary px-3 py-1">File ${index + 1} dari ${totalFiles}</span>
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <div>
+                      <a href="../uploads/${b.path_file}" target="_blank" class="btn btn-primary">
+                        <i class="fas fa-download"></i> Download
+                      </a>
+                      ${
+                        ["pdf", "jpg", "jpeg", "png"].includes(fileExt)
+                          ? `<button onclick="previewFile('../uploads/${b.path_file}', '${fileExt}')" class="btn btn-success ms-2">
+                              <i class="fas fa-eye"></i> Preview
+                            </button>`
+                          : ""
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
           });
 
           berkasHTML = `
-                        <div id="berkasCarousel" class="carousel slide" data-bs-ride="carousel">
-                            <div class="carousel-indicators">
-                                ${berkasList
-                                  .map(
-                                    (_, i) =>
-                                      `<button type="button" data-bs-target="#berkasCarousel" data-bs-slide-to="${i}" 
-                                     ${
-                                       i === 0 ? 'class="active"' : ""
-                                     }></button>`
-                                  )
-                                  .join("")}
-                            </div>
-                            <div class="carousel-inner">
-                                ${carouselItems}
-                            </div>
-                            <button class="carousel-control-prev" type="button" data-bs-target="#berkasCarousel" data-bs-slide="prev">
-                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Previous</span>
-                            </button>
-                            <button class="carousel-control-next" type="button" data-bs-target="#berkasCarousel" data-bs-slide="next">
-                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Next</span>
-                            </button>
-                        </div>
-                        <style>
-                            .carousel-control-prev-icon,
-                            .carousel-control-next-icon {
-                                filter: invert(1);
-                            }
-                           
-                                .carousel-indicators [data-bs-target] {
-    background-color: #0051ffff !important; 
-}
+            <div id="berkasCarousel" class="carousel slide" data-bs-ride="carousel">
+              <div class="carousel-indicators">
+                ${berkasList
+                  .map(
+                    (_, i) =>
+                      `<button type="button" data-bs-target="#berkasCarousel" data-bs-slide-to="${i}" 
+                        ${i === 0 ? 'class="active"' : ""}></button>`
+                  )
+                  .join("")}
+              </div>
+              <div class="carousel-inner">
+                ${carouselItems}
+              </div>
+              <button class="carousel-control-prev" type="button" data-bs-target="#berkasCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#berkasCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+              </button>
+            </div>
+            <style>
+              .carousel-control-prev-icon,
+              .carousel-control-next-icon {
+                filter: invert(1);
+              }
+              
+              .carousel-indicators [data-bs-target] {
+                background-color: #0051ffff !important; 
+              }
 
-                                #berkasCarousel .carousel-indicators {
-    transform: translateY(20px);
-}
-
-                        </style>
-                    `;
+              #berkasCarousel .carousel-indicators {
+                transform: translateY(20px);
+              }
+            </style>
+          `;
         }
       } else {
         console.warn("No files found or invalid response format");
       }
 
       const htmlContent = `
-                <table class="table text-start">
-                    <tr><td><strong>Nomor Pengajuan</strong></td><td>${
-                      data.nomor_pengajuan || "-"
-                    }</td></tr>
-                    <tr><td><strong>Nama Warga</strong></td><td>${
-                      data.nama_warga || data.nama_lengkap || "-"
-                    }</td></tr>
-                    <tr><td><strong>Jenis Dokumen</strong></td><td>${
-                      data.nama_dokumen || "-"
-                    }</td></tr>
-                    <tr><td><strong>Keperluan</strong></td><td>${
-                      data.keperluan || "-"
-                    }</td></tr>
-                    <tr><td><strong>Status</strong></td><td><span class="badge bg-${
-                      data.warna_badge || "secondary"
-                    }">${data.nama_status || "-"}</span></td></tr>
-                    <tr><td><strong>Tanggal Pengajuan</strong></td><td>${
-                      data.tanggal_pengajuan || "-"
-                    }</td></tr>
-                    <tr><td colspan="2"><hr><strong>Keterangan:</strong><br>${keterangan}</td></tr>
-                    ${
-                      data.catatan_validasi
-                        ? `<tr><td colspan="2"><hr><strong>Catatan Validasi:</strong><br>${data.catatan_validasi}</td></tr>`
-                        : ""
-                    }
-                </table>
-                <hr>
-                <h6><i class="fas fa-paperclip"></i> Berkas Pendukung:</h6>
-                ${berkasHTML}
-            `;
+        <table class="table text-start">
+          <tr><td><strong>Nomor Pengajuan</strong></td><td>${data.nomor_pengajuan || "-"}</td></tr>
+          <tr><td><strong>Nama Warga</strong></td><td>${data.nama_warga || data.nama_lengkap || "-"}</td></tr>
+          <tr><td><strong>Jenis Dokumen</strong></td><td>${data.nama_dokumen || "-"}</td></tr>
+          <tr><td><strong>Keperluan</strong></td><td>${data.keperluan || "-"}</td></tr>
+          <tr><td><strong>Status</strong></td><td><span class="badge bg-${data.warna_badge || "secondary"}">${data.nama_status || "-"}</span></td></tr>
+          <tr><td><strong>Tanggal Pengajuan</strong></td><td>${data.tanggal_pengajuan || "-"}</td></tr>
+          <tr><td colspan="2"><hr><strong>Keterangan:</strong><br>${keterangan}</td></tr>
+          ${
+            data.catatan_validasi
+              ? `<tr><td colspan="2"><hr><strong>Catatan Validasi:</strong><br>${data.catatan_validasi}</td></tr>`
+              : ""
+          }
+        </table>
+        <hr>
+        <h6><i class="fas fa-paperclip"></i> Berkas Pendukung:</h6>
+        ${berkasHTML}
+      `;
 
       Swal.fire({
         title: "Detail Pengajuan",
@@ -505,6 +512,7 @@ function viewDetail(data) {
       showError("Gagal memuat detail berkas: " + error.message);
     });
 }
+
 
 // ============================================
 // TABLE HELPERS
@@ -747,6 +755,7 @@ function debounce(func, wait = 300) {
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     confirmDelete,
+    confirmLogout,
     showLoading,
     hideLoading,
     showSuccess,

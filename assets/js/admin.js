@@ -476,7 +476,7 @@ function initAdminDashboard() {
     // Handle logout confirmation
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('logout')) {
-        confirmDelete('Yakin ingin logout?').then((result) => {
+        confirmLogout('Yakin ingin logout?').then((result) => {
             if (result.isConfirmed) {
                 window.location.href = '../includes/logout.php';
             }

@@ -147,11 +147,11 @@ require_once '../handler/petugas_handler.php';
                                         <td><?= format_tanggal($row['tanggal_pengajuan']) ?></td>
                                         <td><?= get_status_badge($row['nama_status'], $row['warna_badge']) ?></td>
                                         <td>
-                                            <button class="btn btn-sm btn-info" onclick="showDetail(<?= htmlspecialchars(json_encode($row)) ?>)">
+                                            <button class="btn btn-sm btn-info mb-2" onclick="showDetail(<?= htmlspecialchars(json_encode($row)) ?>)">
                                                 <i class="fas fa-eye"></i> Detail
                                             </button>
                                             <?php if ($row['id_status'] == 1): ?>
-                                                <button class="btn btn-sm btn-primary" onclick="showValidasi(<?= $row['id_pengajuan'] ?>)">
+                                                <button class="btn btn-sm btn-primary mb-2" onclick="showValidasi(<?= $row['id_pengajuan'] ?>)">
                                                     <i class="fas fa-check"></i> Validasi
                                                 </button>
                                             <?php endif; ?>
@@ -260,13 +260,16 @@ require_once '../handler/petugas_handler.php';
             new bootstrap.Modal(document.getElementById('validasiModal')).show();
         }
 
-        <?php if (isset($_GET['logout'])): ?>
-            confirmDelete('Anda yakin ingin keluar?').then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = '../includes/logout.php';
-                }
-            });
-        <?php endif; ?>
+       <?php if (isset($_GET['logout'])): ?>
+        confirmLogout('Anda yakin ingin keluar?').then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '../includes/logout.php';
+            } else {
+                // Jika dibatalkan, hapus parameter ?logout dari URL
+                window.history.replaceState({}, document.title, 'petugas.php');
+            }
+        });
+    <?php endif; ?>
     </script>
 </body>
 

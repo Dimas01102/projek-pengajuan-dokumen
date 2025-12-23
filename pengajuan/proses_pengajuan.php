@@ -1,7 +1,13 @@
 <?php
+// PENTING: Jangan output apapun sebelum ini
+ob_start(); // Mulai output buffering
+
 require_once '../includes/config.php';
 require_once '../includes/auth.php';
 require_once '../includes/functions.php';
+
+// Clear any previous output
+ob_clean();
 
 header('Content-Type: application/json');
 require_login();
@@ -11,6 +17,11 @@ $user_id = $_SESSION['user_id'];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $errors = [];
+
+    // Debug log
+    error_log("=== PROSES PENGAJUAN START ===");
+    error_log("POST data: " . print_r($_POST, true));
+    error_log("FILES data: " . print_r($_FILES, true));
 
     // Validasi dasar
     if (empty($_POST['id_jenis'])) $errors[] = 'Jenis dokumen harus dipilih';
@@ -33,43 +44,82 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Validasi jumlah file upload
     $required_files = $upload_config['jumlah'] ?? 1;
 
-    if (!isset($_FILES['berkas']) || !isset($_FILES['berkas']['name'])) {
+    if (!isset($_FILES['berkas']) || empty($_FILES['berkas']['name'])) {
         $errors[] = 'File upload wajib diisi';
     } else {
         $uploaded_files = $_FILES['berkas'];
-        $total_uploaded = is_array($uploaded_files['name']) ? count($uploaded_files['name']) : 1;
+        
+        // Hitung jumlah file yang benar-benar diupload
+        $total_uploaded = 0;
+        if (is_array($uploaded_files['name'])) {
+            // Multiple files
+            foreach ($uploaded_files['name'] as $name) {
+                if (!empty($name)) {
+                    $total_uploaded++;
+                }
+            }
+        } else {
+            // Single file
+            if (!empty($uploaded_files['name'])) {
+                $total_uploaded = 1;
+            }
+        }
+
+        error_log("Required files: $required_files, Uploaded: $total_uploaded");
 
         if ($total_uploaded < $required_files) {
             $errors[] = "Wajib upload $required_files file. Anda hanya upload $total_uploaded file.";
         }
 
         // Validasi setiap file
-        for ($i = 0; $i < $total_uploaded; $i++) {
-            $file_name = is_array($uploaded_files['name']) ? $uploaded_files['name'][$i] : $uploaded_files['name'];
-            $file_error = is_array($uploaded_files['error']) ? $uploaded_files['error'][$i] : $uploaded_files['error'];
-            $file_size = is_array($uploaded_files['size']) ? $uploaded_files['size'][$i] : $uploaded_files['size'];
+        if (is_array($uploaded_files['name'])) {
+            for ($i = 0; $i < count($uploaded_files['name']); $i++) {
+                if (empty($uploaded_files['name'][$i])) continue;
 
-            $label = isset($upload_config['labels'][$i]) ? $upload_config['labels'][$i] : "File " . ($i + 1);
+                $file_name = $uploaded_files['name'][$i];
+                $file_error = $uploaded_files['error'][$i];
+                $file_size = $uploaded_files['size'][$i];
 
-            if ($file_error === UPLOAD_ERR_NO_FILE) {
-                $errors[] = "$label wajib diupload";
-                continue;
+                $label = isset($upload_config['labels'][$i]) ? $upload_config['labels'][$i] : "File " . ($i + 1);
+
+                if ($file_error !== UPLOAD_ERR_OK) {
+                    $errors[] = "Terjadi kesalahan saat upload $label (Error code: $file_error)";
+                    continue;
+                }
+
+                $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+
+                // HANYA PDF
+                if ($file_ext !== 'pdf') {
+                    $errors[] = "$label: Hanya file PDF yang diperbolehkan (File: $file_name)";
+                }
+
+                if ($file_size > 5242880) { // 5MB
+                    $errors[] = "$label: Ukuran file terlalu besar (maksimal 5MB, ukuran: " . round($file_size/1048576, 2) . "MB)";
+                }
             }
+        } else {
+            // Single file validation
+            if (!empty($uploaded_files['name'])) {
+                $file_name = $uploaded_files['name'];
+                $file_error = $uploaded_files['error'];
+                $file_size = $uploaded_files['size'];
 
-            if ($file_error !== UPLOAD_ERR_OK) {
-                $errors[] = "Terjadi kesalahan saat upload $label";
-                continue;
-            }
+                $label = isset($upload_config['labels'][0]) ? $upload_config['labels'][0] : "File";
 
-            $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+                if ($file_error !== UPLOAD_ERR_OK) {
+                    $errors[] = "Terjadi kesalahan saat upload $label (Error code: $file_error)";
+                } else {
+                    $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
 
-            // HANYA PDF
-            if ($file_ext !== 'pdf') {
-                $errors[] = "$label: Hanya file PDF yang diperbolehkan";
-            }
+                    if ($file_ext !== 'pdf') {
+                        $errors[] = "$label: Hanya file PDF yang diperbolehkan";
+                    }
 
-            if ($file_size > 5242880) { // 5MB
-                $errors[] = "$label: Ukuran file terlalu besar (maksimal 5MB)";
+                    if ($file_size > 5242880) {
+                        $errors[] = "$label: Ukuran file terlalu besar (maksimal 5MB)";
+                    }
+                }
             }
         }
     }
@@ -87,64 +137,100 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     if (!empty($errors)) {
+        error_log("Validation errors: " . implode(', ', $errors));
+        ob_end_clean();
         echo json_encode(['status' => 'error', 'message' => implode('<br>', $errors)]);
         exit;
     }
 
     // Proses simpan
-    $keperluan = clean_input($_POST['keperluan']);
-    $nomor_pengajuan = generate_nomor_pengajuan();
-    $keterangan = array();
+    try {
+        $keperluan = clean_input($_POST['keperluan']);
+        $nomor_pengajuan = generate_nomor_pengajuan();
+        $keterangan = array();
 
-    // Simpan field config dengan label asli
-    if (!empty($field_config)) {
-        foreach ($field_config as $field) {
-            $field_name = strtolower(str_replace([' ', '.'], ['_', ''], $field['label']));
-            if (isset($_POST[$field_name])) {
-                $keterangan[$field['label']] = clean_input($_POST[$field_name]);
+        // Simpan field config dengan label asli
+        if (!empty($field_config)) {
+            foreach ($field_config as $field) {
+                $field_name = strtolower(str_replace([' ', '.'], ['_', ''], $field['label']));
+                if (isset($_POST[$field_name])) {
+                    $keterangan[$field['label']] = clean_input($_POST[$field_name]);
+                }
             }
         }
-    }
 
-    $keterangan_json = json_encode(sanitize_json_input($keterangan), JSON_UNESCAPED_UNICODE);
-    $keterangan_escaped = mysqli_real_escape_string($conn, $keterangan_json);
+        $keterangan_json = json_encode(sanitize_json_input($keterangan), JSON_UNESCAPED_UNICODE);
+        $keterangan_escaped = mysqli_real_escape_string($conn, $keterangan_json);
 
-    // Insert pengajuan
-    $query = "INSERT INTO t_pengajuan (nomor_pengajuan, id_pengguna, id_jenis, keperluan, keterangan, id_status) 
-              VALUES ('$nomor_pengajuan', '$user_id', '$id_jenis', '$keperluan', '$keterangan_escaped', 1)";
+        // Insert pengajuan
+        $query = "INSERT INTO t_pengajuan (nomor_pengajuan, id_pengguna, id_jenis, keperluan, keterangan, id_status) 
+                  VALUES ('$nomor_pengajuan', '$user_id', '$id_jenis', '$keperluan', '$keterangan_escaped', 1)";
 
-    if (mysqli_query($conn, $query)) {
+        error_log("Insert query: $query");
+
+        if (!mysqli_query($conn, $query)) {
+            throw new Exception('Gagal menyimpan pengajuan: ' . mysqli_error($conn));
+        }
+
         $id_pengajuan = mysqli_insert_id($conn);
+        error_log("Pengajuan inserted with ID: $id_pengajuan");
 
         // Insert riwayat status
         $riwayat_query = "INSERT INTO t_riwayat_status (id_pengajuan, id_status, catatan, diubah_oleh) 
                          VALUES ('$id_pengajuan', 1, 'Pengajuan dibuat', '$user_id')";
-        mysqli_query($conn, $riwayat_query);
+        
+        if (!mysqli_query($conn, $riwayat_query)) {
+            throw new Exception('Gagal menyimpan riwayat: ' . mysqli_error($conn));
+        }
 
         // Upload semua file
         $uploaded_files = $_FILES['berkas'];
         $upload_success = true;
         $upload_errors = [];
 
-        $total_files = is_array($uploaded_files['name']) ? count($uploaded_files['name']) : 1;
+        // Handle array atau single file
+        if (is_array($uploaded_files['name'])) {
+            // Multiple files
+            $total_files = count($uploaded_files['name']);
+            
+            for ($i = 0; $i < $total_files; $i++) {
+                if (empty($uploaded_files['name'][$i])) continue;
 
-        for ($i = 0; $i < $total_files; $i++) {
-            // Reconstruct $_FILES format untuk setiap file
-            $single_file = array(
-                'name' => is_array($uploaded_files['name']) ? $uploaded_files['name'][$i] : $uploaded_files['name'],
-                'type' => is_array($uploaded_files['type']) ? $uploaded_files['type'][$i] : $uploaded_files['type'],
-                'tmp_name' => is_array($uploaded_files['tmp_name']) ? $uploaded_files['tmp_name'][$i] : $uploaded_files['tmp_name'],
-                'error' => is_array($uploaded_files['error']) ? $uploaded_files['error'][$i] : $uploaded_files['error'],
-                'size' => is_array($uploaded_files['size']) ? $uploaded_files['size'][$i] : $uploaded_files['size']
-            );
+                // Reconstruct $_FILES format untuk setiap file
+                $single_file = array(
+                    'name' => $uploaded_files['name'][$i],
+                    'type' => $uploaded_files['type'][$i],
+                    'tmp_name' => $uploaded_files['tmp_name'][$i],
+                    'error' => $uploaded_files['error'][$i],
+                    'size' => $uploaded_files['size'][$i]
+                );
 
-            $label = isset($upload_config['labels'][$i]) ? $upload_config['labels'][$i] : "Dokumen " . ($i + 1);
+                $label = isset($upload_config['labels'][$i]) ? $upload_config['labels'][$i] : "Dokumen " . ($i + 1);
 
-            $upload_result = upload_file_with_label($single_file, $id_pengajuan, $label);
+                error_log("Uploading file $i: " . $single_file['name'] . " with label: $label");
 
-            if (!$upload_result['status']) {
-                $upload_success = false;
-                $upload_errors[] = $label . ': ' . $upload_result['message'];
+                $upload_result = upload_file_with_label($single_file, $id_pengajuan, $label);
+
+                if (!$upload_result['status']) {
+                    $upload_success = false;
+                    $upload_errors[] = $label . ': ' . $upload_result['message'];
+                    error_log("Upload failed for $label: " . $upload_result['message']);
+                }
+            }
+        } else {
+            // Single file
+            if (!empty($uploaded_files['name'])) {
+                $label = isset($upload_config['labels'][0]) ? $upload_config['labels'][0] : "Dokumen";
+                
+                error_log("Uploading single file: " . $uploaded_files['name'] . " with label: $label");
+                
+                $upload_result = upload_file_with_label($uploaded_files, $id_pengajuan, $label);
+
+                if (!$upload_result['status']) {
+                    $upload_success = false;
+                    $upload_errors[] = $label . ': ' . $upload_result['message'];
+                    error_log("Upload failed for $label: " . $upload_result['message']);
+                }
             }
         }
 
@@ -154,14 +240,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             mysqli_query($conn, "DELETE FROM t_riwayat_status WHERE id_pengajuan = '$id_pengajuan'");
             mysqli_query($conn, "DELETE FROM t_berkas_dokumen WHERE id_pengajuan = '$id_pengajuan'");
 
+            error_log("Upload failed, rolled back pengajuan ID: $id_pengajuan");
+            ob_end_clean();
             echo json_encode(['status' => 'error', 'message' => 'Gagal upload file:<br>' . implode('<br>', $upload_errors)]);
             exit;
         }
 
+        error_log("=== PROSES PENGAJUAN SUCCESS ===");
+        ob_end_clean();
         echo json_encode(['status' => 'success', 'message' => 'Pengajuan berhasil dikirim dengan nomor: ' . $nomor_pengajuan]);
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Gagal menyimpan pengajuan: ' . mysqli_error($conn)]);
+        
+    } catch (Exception $e) {
+        error_log("Exception in proses_pengajuan: " . $e->getMessage());
+        ob_end_clean();
+        echo json_encode(['status' => 'error', 'message' => 'Terjadi kesalahan: ' . $e->getMessage()]);
     }
 } else {
+    ob_end_clean();
     echo json_encode(['status' => 'error', 'message' => 'Invalid request method']);
 }

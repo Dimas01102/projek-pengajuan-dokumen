@@ -265,8 +265,8 @@ require_once '../handler/admin_handler.php';
                                             <td><?= $w['no_hp'] ?: '-' ?></td>
                                             <td><?= format_tanggal($w['tanggal_daftar']) ?></td>
                                             <td>
-                                                <button class="btn btn-sm btn-info" onclick='viewWargaDetail(<?= json_encode($w) ?>)' title="Lihat Detail"><i class="fas fa-eye"></i></button>
-                                                <button class="btn btn-sm btn-danger" onclick="hapusWarga(<?= $w['id_pengguna'] ?>, '<?= $w['nama_lengkap'] ?>')" title="Hapus"><i class="fas fa-trash"></i></button>
+                                                <button class="btn btn-sm btn-info mb-1" onclick='viewWargaDetail(<?= json_encode($w) ?>)' title="Lihat Detail"><i class="fas fa-eye"></i></button>
+                                                <button class="btn btn-sm btn-danger mb-1" onclick="hapusWarga(<?= $w['id_pengguna'] ?>, '<?= $w['nama_lengkap'] ?>')" title="Hapus"><i class="fas fa-trash"></i></button>
                                             </td>
                                         </tr>
                                     <?php endwhile; ?>
@@ -733,26 +733,37 @@ require_once '../handler/admin_handler.php';
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Load external JavaScript files -->
-<script src="../assets/js/main.js"></script>
-<script src="../assets/js/admin.js"></script>
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/admin.js"></script>
     <script>
-    // Flash message configuration
-    window.flashMessage = {
-        message: <?= json_encode($flash_message ?? '') ?>,
-        type: <?= json_encode($flash_type ?? '') ?>
-    };
+        <?php if (isset($_GET['logout'])): ?>
+        confirmLogout('Anda yakin ingin keluar?').then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '../includes/logout.php';
+            } else {
+                // Jika dibatalkan, hapus parameter ?logout dari URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+    <?php endif; ?>
 
-    // Chart data configuration
-    window.adminChartData = {
-        stats: {
-            pending: <?= $stats['pending'] ?>,
-            disetujui: <?= $stats['disetujui'] ?>,
-            ditolak: <?= $stats['ditolak'] ?>
-        },
-        labels: <?= json_encode($chart_labels) ?>,
-        data: <?= json_encode($chart_data) ?>
-    };
-</script>
+        // Flash message configuration
+        window.flashMessage = {
+            message: <?= json_encode($flash_message ?? '') ?>,
+            type: <?= json_encode($flash_type ?? '') ?>
+        };
+
+        // Chart data configuration
+        window.adminChartData = {
+            stats: {
+                pending: <?= $stats['pending'] ?>,
+                disetujui: <?= $stats['disetujui'] ?>,
+                ditolak: <?= $stats['ditolak'] ?>
+            },
+            labels: <?= json_encode($chart_labels) ?>,
+            data: <?= json_encode($chart_data) ?>
+        };
+    </script>
 
 
 </body>

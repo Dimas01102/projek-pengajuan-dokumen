@@ -365,6 +365,8 @@ $result_jenis = mysqli_query($conn, $query_jenis);
         document.getElementById('formPengajuan').addEventListener('submit', function(e) {
             e.preventDefault();
 
+            console.log("Form submission started");
+
             const fileInputs = document.querySelectorAll('.file-upload');
             let allFilesValid = true;
 
@@ -412,9 +414,58 @@ $result_jenis = mysqli_query($conn, $query_jenis);
 
             if (!allFilesValid) return false;
 
-            // Submit form
-            const formData = new FormData(this);
+            // === Buat FormData dengan benar ===
+            const formData = new FormData();
 
+            // Tambahkan field biasa
+            const formElements = this.elements;
+            for (let i = 0; i < formElements.length; i++) {
+                const element = formElements[i];
+
+                // Skip file inputs dan buttons
+                if (element.type === 'file' || element.type === 'submit' || element.type === 'button') {
+                    continue;
+                }
+
+                // Tambahkan field dengan value-nya
+                if (element.name && element.value) {
+                    formData.append(element.name, element.value);
+                    console.log(`Added field: ${element.name} = ${element.value}`);
+                }
+            }
+
+            const filesArray = Array.from(fileInputs);
+            console.log(`Total files to upload: ${filesArray.length}`);
+
+            if (filesArray.length > 1) {
+                // Multiple files - gunakan array notation
+                filesArray.forEach((input, index) => {
+                    const file = input.files[0];
+                    if (file) {
+                        formData.append('berkas[]', file);
+                        console.log(`Added file ${index}: ${file.name}, size: ${file.size}`);
+                    }
+                });
+            } else if (filesArray.length === 1) {
+                // Single file
+                const file = filesArray[0].files[0];
+                if (file) {
+                    formData.append('berkas', file);
+                    console.log(`Added single file: ${file.name}, size: ${file.size}`);
+                }
+            }
+
+            // Log semua FormData entries
+            console.log("=== FormData Contents ===");
+            for (let pair of formData.entries()) {
+                if (pair[1] instanceof File) {
+                    console.log(pair[0] + ': [File] ' + pair[1].name);
+                } else {
+                    console.log(pair[0] + ': ' + pair[1]);
+                }
+            }
+
+            // Submit form
             Swal.fire({
                 title: 'Memproses...',
                 text: 'Mohon tunggu',
@@ -428,8 +479,25 @@ $result_jenis = mysqli_query($conn, $query_jenis);
                     method: 'POST',
                     body: formData
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log("Response status:", response.status);
+                    console.log("Response headers:", response.headers);
+
+                    // Check if response is actually JSON
+                    const contentType = response.headers.get("content-type");
+                    if (!contentType || !contentType.includes("application/json")) {
+                        // Response bukan JSON, ambil sebagai text untuk debugging
+                        return response.text().then(text => {
+                            console.error("Response is not JSON:", text);
+                            throw new Error("Server mengembalikan response yang tidak valid. Response: " + text.substring(0, 200));
+                        });
+                    }
+
+                    return response.json();
+                })
                 .then(data => {
+                    console.log("Response data:", data);
+
                     if (data.status === 'success') {
                         Swal.fire({
                             icon: 'success',
@@ -443,19 +511,21 @@ $result_jenis = mysqli_query($conn, $query_jenis);
                         Swal.fire({
                             icon: 'error',
                             title: 'Gagal!',
-                            html: data.message
+                            html: data.message || 'Terjadi kesalahan sistem'
                         });
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
+                    console.error('Fetch Error:', error);
                     Swal.fire({
                         icon: 'error',
                         title: 'Error!',
-                        text: 'Terjadi kesalahan sistem'
+                        html: `<p>Terjadi kesalahan sistem</p><p><small>${error.message}</small></p>`,
+                        footer: '<small>Silakan cek console browser (F12) untuk detail error</small>'
                     });
                 });
         });
+
 
         <?php if (isset($_GET['logout'])): ?>
             Swal.fire({

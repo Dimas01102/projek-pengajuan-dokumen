@@ -258,30 +258,37 @@ require_once '../handler/warga_handler.php';
 
     <?php if (isset($_GET['logout'])): ?>
         <script>
-            confirmDelete('Yakin ingin logout?').then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = '../includes/logout.php';
-                }
-            });
-            document.addEventListener('DOMContentLoaded', function() {
-                const submenu = document.getElementById('pengajuanSubmenu');
-                const toggle = document.getElementById('pengajuanDropdown');
+           <?php if (isset($_GET['logout'])): ?>
+        confirmLogout('Anda yakin ingin keluar?').then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '../includes/logout.php';
+            } else {
+                // Jika dibatalkan, hapus parameter ?logout dari URL  
+                window.history.replaceState({}, document.title, 'warga.php');
+            }
+        });
+    <?php endif; ?>
 
-                // Saat halaman dibuka, cek status terakhir
-                if (localStorage.getItem('pengajuan_open') === 'true') {
-                    submenu.classList.add('show');
-                }
+    // Dropdown submenu persistence
+    document.addEventListener('DOMContentLoaded', function() {
+        const submenu = document.getElementById('pengajuanSubmenu');
+        const toggle = document.getElementById('pengajuanDropdown');
 
-                // Saat dropdown dibuka
-                submenu.addEventListener('shown.bs.collapse', function() {
-                    localStorage.setItem('pengajuan_open', 'true');
-                });
+        // Saat halaman dibuka, cek status terakhir
+        if (localStorage.getItem('pengajuan_open') === 'true') {
+            submenu.classList.add('show');
+        }
 
-                // Saat dropdown ditutup
-                submenu.addEventListener('hidden.bs.collapse', function() {
-                    localStorage.setItem('pengajuan_open', 'false');
-                });
-            });
+        // Saat dropdown dibuka
+        submenu.addEventListener('shown.bs.collapse', function() {
+            localStorage.setItem('pengajuan_open', 'true');
+        });
+
+        // Saat dropdown ditutup
+        submenu.addEventListener('hidden.bs.collapse', function() {
+            localStorage.setItem('pengajuan_open', 'false');
+        });
+    });
         </script>
     <?php endif; ?>
 
