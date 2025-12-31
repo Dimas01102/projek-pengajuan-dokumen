@@ -31,8 +31,8 @@
                 <ul>
                     <li>
                         <i class="fas fa-map-marker-alt me-2"></i>
-                        Jl. Contoh No. 123<br>
-                        <span style="margin-left: 26px;">Kota, Provinsi 12345</span>
+                        Jl. Ahmad Yani Batam Kota.<br>
+                        <span style="margin-left: 26px;">Kepulauan Riau 29464</span>
                     </li>
                     <li><i class="fas fa-phone me-2"></i>+62 812-3456-7890</li>
                     <li><i class="fas fa-envelope me-2"></i>info@dokumenwarga.id</li>
