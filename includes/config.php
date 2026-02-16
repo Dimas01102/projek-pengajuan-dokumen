@@ -130,6 +130,16 @@ if (DEBUG_MODE) {
 }
 
 // ============================================
+// TRUST RAILWAY PROXY 
+// ============================================
+if (
+    isset($_SERVER['HTTP_X_FORWARDED_PROTO']) &&
+    $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https'
+) {
+    $_SERVER['HTTPS'] = 'on';
+}
+
+// ============================================
 // SESSION CONFIGURATION
 // ============================================
 if (session_status() === PHP_SESSION_NONE) {
@@ -140,7 +150,7 @@ if (session_status() === PHP_SESSION_NONE) {
     ini_set('session.cookie_httponly', 1);
     ini_set('session.use_only_cookies', 1);
     ini_set('session.cookie_secure', $sessionSecure ? 1 : 0);
-    ini_set('session.cookie_samesite', 'Lax');
+    ini_set('session.cookie_samesite', 'None');
     ini_set('session.gc_maxlifetime', $sessionLifetime);
     
     // Start session
