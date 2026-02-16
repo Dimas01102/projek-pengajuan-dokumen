@@ -1,14 +1,14 @@
 <?php
 
 if (php_sapi_name() === 'cli-server') {
-    $url  = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-    $file = __DIR__ . $url;
+    $path = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
+    $file = __DIR__ . $path;
 
-    // kalau file asli ada (css, js, img, pdf)
-    if (is_file($file)) {
+    // kalau file atau folder asli ada → tampilkan langsung
+    if ($path !== '/' && file_exists($file)) {
         return false;
     }
 }
 
-// arahkan semua request ke index
-require_once __DIR__ . '/index.php';
+// default buka index
+require __DIR__ . '/index.php';
