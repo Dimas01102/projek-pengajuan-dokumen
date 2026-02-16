@@ -1,5 +1,4 @@
 <?php
-// includes/auth.php
 
 require_once 'config.php';
 

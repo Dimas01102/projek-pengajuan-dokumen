@@ -1,4 +1,7 @@
 <?php
+ini_set('session.save_path', sys_get_temp_dir());
+session_start();
+
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/functions.php';
 
