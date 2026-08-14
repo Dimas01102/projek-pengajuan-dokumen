@@ -1,8 +1,4 @@
 <?php
-/* ========================================
-   API untuk mengambil data berkas pengajuan
-   FILE: api/get_berkas.php
-========================7================= */
 
 // Session 
 if (session_status() === PHP_SESSION_NONE) {
